@@ -14,7 +14,7 @@ export class AssessmentChart {
         brick3: '#4A9FB5',
         brick4: '#2B5F7A',
         text: '#666666',
-        gridLines: '#E0E0E0',
+        gridLines: '#E0E0E0', // Only for optional chart grid lines, not page guides
         title: '#1976D2',
         divider: '#E8E8E8'
       },
@@ -27,27 +27,37 @@ export class AssessmentChart {
     };
   }
 
+  /**
+   * Renders the chart data. This does NOT draw any page-level print guides.
+   * Page-level print guides (red lines for margins, columns, etc.) are handled by CSS on .pdf-page.
+   */
   render(data) {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.drawGridLines(data.items.length);
+    this.drawGridLines(data.items.length); // Only draws chart-internal grid lines if enabled
     this.drawScaleNumbers();
     this.drawTitle(data.title);
     this.drawBars(data.items);
   }
 
+  /**
+   * Draws optional chart-internal grid lines (not page-level guides).
+   * These lines are for visualizing chart columns only, and are not visible by default.
+   * Page-level print guides are handled by CSS, not by this method.
+   */
   drawGridLines(itemCount) {
-    const { ctx, config, canvas } = this;
-    const { padding, barHeight, barSpacing, brickWidth, maxScore, colors } = config;
+    const { ctx, config } = this;
+    const { padding, barHeight, barSpacing, brickWidth, maxScore } = config;
     ctx.save();
-    ctx.strokeStyle = colors.gridLines;
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= maxScore; i++) {
-      const x = padding.left + i * brickWidth;
-      ctx.beginPath();
-      ctx.moveTo(x, padding.top - 10);
-      ctx.lineTo(x, padding.top + itemCount * (barHeight + barSpacing) - barSpacing + 10);
-      ctx.stroke();
-    }
+    // By default, do not draw chart grid lines. Uncomment below to enable.
+    // ctx.strokeStyle = config.colors.gridLines;
+    // ctx.lineWidth = 1;
+    // for (let i = 1; i < maxScore; i++) {
+    //   const x = padding.left + i * brickWidth;
+    //   ctx.beginPath();
+    //   ctx.moveTo(x, padding.top);
+    //   ctx.lineTo(x, padding.top + itemCount * (barHeight + barSpacing) - barSpacing);
+    //   ctx.stroke();
+    // }
     ctx.restore();
   }
 

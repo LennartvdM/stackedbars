@@ -11,31 +11,164 @@
             align-items: center;
             padding: 20px;
             font-family: Arial, sans-serif;
+            background: #f5f5f5;
         }
-        #layout-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-gap: 24px 32px;
-            margin-bottom: 32px;
-        }
-        .grid-cell {
-            border: 1px solid #ccc;
-            padding: 10px;
+
+        .pdf-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            background: #fafbfc;
-            min-width: 340px;
+            gap: 20px;
         }
-        .grid-cell h3 {
-            margin: 0 0 10px 0;
+
+        .pdf-page {
+            width: 842px;
+            height: 595px;
+            border: 2px solid #333;
+            margin: 0 auto;
+            padding: 0;
+            background: white;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Subtle, accurate print guides */
+        .show-guides .pdf-page {
+            background-image:
+                /* Page margins - 40pt left/right, 50pt top, 40pt bottom */
+                linear-gradient(to right, transparent 40px, rgba(255,0,0,0.5) 40px, rgba(255,0,0,0.5) 41px, transparent 41px),
+                linear-gradient(to right, transparent 801px, rgba(255,0,0,0.5) 801px, rgba(255,0,0,0.5) 802px, transparent 802px),
+                linear-gradient(to bottom, transparent 50px, rgba(255,0,0,0.5) 50px, rgba(255,0,0,0.5) 51px, transparent 51px),
+                linear-gradient(to bottom, transparent 554px, rgba(255,0,0,0.5) 554px, rgba(255,0,0,0.5) 555px, transparent 555px),
+                /* Center column divider */
+                linear-gradient(to right, transparent 421px, rgba(255,0,0,0.3) 421px, rgba(255,0,0,0.3) 422px, transparent 422px),
+                /* Light reference grid */
+                linear-gradient(to right, rgba(200,200,200,0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(200,200,200,0.1) 1px, transparent 1px);
+            background-size:
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                20px 20px,
+                20px 20px;
+        }
+
+        /* Optional: minimal fallback for debugging
+        .show-guides .pdf-page {
+            outline: 2px solid #ccc;
+        }
+        .show-guides .page-content {
+            outline: 1px dashed rgba(255,0,0,0.4);
+        }
+        .show-guides .column {
+            outline: 1px dotted rgba(0,0,255,0.3);
+        }
+        */
+
+        .page-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #666;
             font-size: 14px;
-            color: #1976D2;
+            z-index: 5;
         }
-        .grid-cell canvas {
-            border: 1px solid #ddd;
+
+        .page-content {
+            position: absolute;
+            top: 50px;
+            left: 40px;
+            right: 40px;
+            bottom: 40px;
+            display: flex;
+            gap: 30px;
+            z-index: 5;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Charts should fill their allocated space */
+        .chart-section.full-height {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .chart-section.half-height {
+            flex: 0 0 calc(50% - 10px);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .chart-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #1976D2;
+            text-align: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Remove all borders from canvases */
+        .chart-section.full-height canvas {
+            width: 366px !important;
+            height: 505px !important;
+            display: block;
+            border: none;
             background: white;
         }
+        .chart-section.half-height canvas {
+            width: 366px !important;
+            height: 237px !important;
+            display: block;
+            border: none;
+            background: white;
+        }
+        .chart-section canvas {
+            border: none;
+            background: white;
+        }
+
+        .page-break {
+            height: 2px;
+            background: #ff0000;
+            margin: 10px auto;
+            width: 80%;
+            position: relative;
+        }
+
+        .page-break::after {
+            content: "PAGE BREAK";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 0 10px;
+            font-size: 12px;
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
@@ -45,6 +178,7 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #45a049;
         }
@@ -52,41 +186,93 @@
 </head>
 <body>
     <h1>PDF Layout Generator - Landscape</h1>
-    <label style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="toggleGuides" checked>
-        Show printing guides
-    </label>
-    <div id="layout-grid">
-        <!-- Page 1 Left Column -->
-        <div class="grid-cell">
-            <h3>Leiderschap</h3>
-            <canvas id="leadership-chart" width="300" height="120"></canvas>
+    
+    <div class="controls">
+        <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="toggleGuides" checked>
+            Show printing guides
+        </label>
+        <button id="downloadBtn">Generate PDF</button>
+    </div>
+
+    <div class="pdf-container">
+        <!-- Page 1 -->
+        <div class="pdf-page">
+            <div class="page-header">Page 1 of 2</div>
+            
+            <div class="page-content">
+                <!-- Left Column - FULL HEIGHT -->
+                <div class="column">
+                    <div class="chart-section full-height">
+                        <h3>Leiderschap</h3>
+                        <canvas id="leadership-chart" width="366" height="505"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Right Column - FULL HEIGHT -->
+                <div class="column">
+                    <div class="chart-section full-height">
+                        <h3>HR Management</h3>
+                        <canvas id="hr-chart" width="366" height="505"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- Page 1 Right Column -->
-        <div class="grid-cell">
-            <h3>HR Management</h3>
-            <canvas id="hr-chart" width="300" height="240"></canvas>
-        </div>
-        <!-- Page 2 Left Column -->
-        <div class="grid-cell">
-            <h3>Strategie en Management</h3>
-            <canvas id="strategy-chart" width="300" height="160"></canvas>
-        </div>
-        <div class="grid-cell">
-            <h3>Communicatie</h3>
-            <canvas id="communication-chart" width="300" height="120"></canvas>
-        </div>
-        <!-- Page 2 Right Column -->
-        <div class="grid-cell">
-            <h3>Kennis en vaardigheden</h3>
-            <canvas id="knowledge-chart" width="300" height="160"></canvas>
-        </div>
-        <div class="grid-cell">
-            <h3>Klimaat</h3>
-            <canvas id="climate-chart" width="300" height="120"></canvas>
+        
+        <!-- Page Break -->
+        <div class="page-break"></div>
+        
+        <!-- Page 2 -->
+        <div class="pdf-page">
+            <div class="page-header">Page 2 of 2</div>
+            
+            <div class="page-content">
+                <!-- Left Column - Two charts stacked -->
+                <div class="column">
+                    <div class="chart-section half-height">
+                        <h3>Strategie en Management</h3>
+                        <canvas id="strategy-chart" width="366" height="237"></canvas>
+                    </div>
+                    <div class="chart-section half-height">
+                        <h3>Communicatie</h3>
+                        <canvas id="communication-chart" width="366" height="237"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Two charts stacked -->
+                <div class="column">
+                    <div class="chart-section half-height">
+                        <h3>Kennis en vaardigheden</h3>
+                        <canvas id="knowledge-chart" width="366" height="237"></canvas>
+                    </div>
+                    <div class="chart-section half-height">
+                        <h3>Klimaat</h3>
+                        <canvas id="climate-chart" width="366" height="237"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <button id="downloadBtn">Generate PDF</button>
+
     <script type="module" src="main.js"></script>
+    <script>
+      // Printer guides toggle logic
+      document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('toggleGuides');
+        if (toggle) {
+          toggle.addEventListener('change', function() {
+            if (toggle.checked) {
+              document.body.classList.add('show-guides');
+            } else {
+              document.body.classList.remove('show-guides');
+            }
+          });
+          // Set initial state
+          if (toggle.checked) {
+            document.body.classList.add('show-guides');
+          }
+        }
+      });
+    </script>
 </body>
 </html> 
