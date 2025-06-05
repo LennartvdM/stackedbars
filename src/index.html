@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Layout Generator - Landscape</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 24px 32px;
+            margin-bottom: 32px;
+        }
+        .grid-cell {
+            border: 1px solid #ccc;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fafbfc;
+            min-width: 340px;
+        }
+        .grid-cell h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #1976D2;
+        }
+        .grid-cell canvas {
+            border: 1px solid #ddd;
+            background: white;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF Layout Generator - Landscape</h1>
+    <label style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="toggleGuides" checked>
+        Show printing guides
+    </label>
+    <div id="layout-grid">
+        <!-- Page 1 Left Column -->
+        <div class="grid-cell">
+            <h3>Leiderschap</h3>
+            <canvas id="leadership-chart" width="300" height="120"></canvas>
+        </div>
+        <!-- Page 1 Right Column -->
+        <div class="grid-cell">
+            <h3>HR Management</h3>
+            <canvas id="hr-chart" width="300" height="240"></canvas>
+        </div>
+        <!-- Page 2 Left Column -->
+        <div class="grid-cell">
+            <h3>Strategie en Management</h3>
+            <canvas id="strategy-chart" width="300" height="160"></canvas>
+        </div>
+        <div class="grid-cell">
+            <h3>Communicatie</h3>
+            <canvas id="communication-chart" width="300" height="120"></canvas>
+        </div>
+        <!-- Page 2 Right Column -->
+        <div class="grid-cell">
+            <h3>Kennis en vaardigheden</h3>
+            <canvas id="knowledge-chart" width="300" height="160"></canvas>
+        </div>
+        <div class="grid-cell">
+            <h3>Klimaat</h3>
+            <canvas id="climate-chart" width="300" height="120"></canvas>
+        </div>
+    </div>
+    <button id="downloadBtn">Generate PDF</button>
+    <script type="module" src="main.js"></script>
+</body>
+</html> 

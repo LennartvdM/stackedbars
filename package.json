@@ -1,0 +1,8 @@
+{
+  "name": "pdf-chart-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "jspdf": "^2.5.1"
+  }
+} 
