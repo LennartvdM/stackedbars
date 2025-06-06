@@ -1,166 +1,212 @@
 import { AssessmentChart } from './assessment-chart.js';
-import { FixedChartControlSystem } from './chart-controls.js';
 import { chartData, resolveTextReferences } from './chart-data.js';
 
-// Global chart instances and resolved data
-let charts = {};
-let controlSystem;
+// Resolved chart data (populated on init)
 let resolvedChartData;
 
-/**
- * Initialize charts with fixed dimensions
- */
-function initializeChartsWithFixedDimensions() {
-  console.log('Initializing charts with fixed dimensions...');
-  
-  // Resolve text references to get full labels
-  resolvedChartData = resolveTextReferences(chartData);
-  
-  // Clear any existing charts
-  charts = {};
-  
-  // Chart-specific configurations
-  const chartConfigs = {
-    leadership: { canvasHeight: AssessmentChart.calculateHeightForItems(resolvedChartData.leadership.items.length) },
-    hr: { canvasHeight: AssessmentChart.calculateHeightForItems(resolvedChartData.hr.items.length) },
-    strategy: { canvasHeight: 280 },
-    communication: { canvasHeight: 280 },
-    knowledge: { canvasHeight: 280 },
-    climate: { canvasHeight: 280 }
-  };
+// Store chart instances
+let chartInstances = {};
 
-  // Create each chart
-  Object.keys(resolvedChartData).forEach(chartKey => {
-    const canvas = document.getElementById(`${chartKey}-chart`);
-    if (canvas && resolvedChartData[chartKey]) {
-      const config = chartConfigs[chartKey] || {};
-      charts[chartKey] = AssessmentChart.createWithFixedDimensions(canvas, config);
-      charts[chartKey].render(resolvedChartData[chartKey]);
+// Current absolute parameters - mapped to your existing HTML controls
+let currentParams = {
+    // Map your existing controls to absolute parameters
+    rowHeight: 25,              // itemHeight -> rowHeight
+    columnWidth: 20,            // colSpacing -> columnWidth (NOW WORKS!)
+    labelAreaWidth: 240,        // labelWidth -> labelAreaWidth
+    chartAreaX: 270,            // paddingLeft -> chartAreaX
+    titleY: 25,                 // paddingTop -> titleY
+    titleFontSize: 16,          // titleSize -> titleFontSize
+    labelFontSize: 10,          // labelSize -> labelFontSize
+    lineHeight: 12              // lineHeight stays same
+};
+
+// Map your existing HTML control IDs to new absolute parameter names
+const controlMapping = {
+    'itemHeight': 'rowHeight',
+    'colSpacing': 'columnWidth', 
+    'labelWidth': 'labelAreaWidth',
+    'paddingLeft': 'chartAreaX',
+    'paddingTop': 'titleY',
+    'titleSize': 'titleFontSize',
+    'labelSize': 'labelFontSize',
+    'lineHeight': 'lineHeight'
+};
+
+// Get chart configuration with current absolute parameters
+function getAbsoluteChartConfig() {
+    return {
+        rowHeight: currentParams.rowHeight,
+        columnWidth: currentParams.columnWidth,
+        labelAreaWidth: currentParams.labelAreaWidth,
+        chartAreaX: currentParams.chartAreaX,
+        titleY: currentParams.titleY,
+        titleFontSize: currentParams.titleFontSize,
+        labelFontSize: currentParams.labelFontSize,
+        lineHeight: currentParams.lineHeight
+    };
+}
+
+// Set up parameter controls (using your existing HTML)
+function setupParameterControls() {
+    // Connect your existing HTML controls to absolute parameters
+    Object.keys(controlMapping).forEach(htmlControlId => {
+        const absoluteParam = controlMapping[htmlControlId];
+        const slider = document.getElementById(htmlControlId);
+        const valueSpan = document.getElementById(htmlControlId + 'Value');
+        
+        if (slider && valueSpan) {
+            // Set initial value
+            if (currentParams[absoluteParam] !== undefined) {
+                slider.value = currentParams[absoluteParam];
+                valueSpan.textContent = currentParams[absoluteParam];
+            }
+            
+            // Add event listener
+            slider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                valueSpan.textContent = value + 'px';
+                currentParams[absoluteParam] = value;
+                
+                console.log(`Updated ${absoluteParam} to ${value}`);
+                updateAllCharts();
+            });
+        }
+    });
+    
+    // Reset button (using your existing button)
+    const resetBtn = document.getElementById('resetParams');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            // Reset to defaults
+            currentParams = {
+                rowHeight: 25,
+                columnWidth: 20,
+                labelAreaWidth: 240,
+                chartAreaX: 270,
+                titleY: 25,
+                titleFontSize: 16,
+                labelFontSize: 10,
+                lineHeight: 12
+            };
+            
+            // Update UI controls
+            Object.keys(controlMapping).forEach(htmlControlId => {
+                const absoluteParam = controlMapping[htmlControlId];
+                const slider = document.getElementById(htmlControlId);
+                const valueSpan = document.getElementById(htmlControlId + 'Value');
+                
+                if (slider && valueSpan && currentParams[absoluteParam] !== undefined) {
+                    slider.value = currentParams[absoluteParam];
+                    valueSpan.textContent = currentParams[absoluteParam] + 'px';
+                }
+            });
+            
+            updateAllCharts();
+        });
     }
-  });
-
-  // Initialize control system
-  if (Object.keys(charts).length > 0) {
-    controlSystem = new FixedChartControlSystem(charts);
-    controlSystem.setChartData(resolvedChartData);
-  }
 }
 
-/**
- * Setup canvas containers
- */
-function setupCanvasContainers() {
-  document.querySelectorAll('.chart-section').forEach(section => {
-    section.style.display = 'flex';
-    section.style.flexDirection = 'column';
-    section.style.alignItems = 'center';
-    section.style.justifyContent = 'flex-start';
-    section.style.padding = '10px';
-    section.style.overflow = 'visible';
-  });
-  
-  document.querySelectorAll('.chart-section canvas').forEach(canvas => {
-    canvas.style.display = 'block';
-    canvas.style.margin = '0';
-    canvas.style.padding = '0';
-    canvas.style.border = '1px solid #e0e0e0';
-    canvas.style.borderRadius = '4px';
-  });
-}
-
-/**
- * Generate new random data
- */
-function generateNewRandomData() {
-  Object.keys(chartData).forEach(key => {
-    chartData[key].items.forEach(item => {
-      item.score = Math.floor(Math.random() * 4) + 1;
+// Update all charts with current absolute parameters
+function updateAllCharts() {
+    const config = getAbsoluteChartConfig();
+    
+    // Update each chart instance
+    Object.keys(chartInstances).forEach(chartKey => {
+        if (chartInstances[chartKey] && resolvedChartData[chartKey]) {
+            chartInstances[chartKey].updateConfig(config);
+            chartInstances[chartKey].render(resolvedChartData[chartKey]);
+        }
     });
-  });
-  
-  // Re-resolve and re-render
-  resolvedChartData = resolveTextReferences(chartData);
-  rerenderAllCharts();
 }
 
-/**
- * Re-render all charts
- */
-function rerenderAllCharts() {
-  Object.keys(charts).forEach(chartKey => {
-    if (charts[chartKey] && resolvedChartData[chartKey]) {
-      charts[chartKey].render(resolvedChartData[chartKey]);
-    }
-  });
-}
-
-/**
- * Initialize page guides
- */
-function initializePageGuides() {
-  const guidesToggle = document.getElementById('toggleGuides');
-  if (guidesToggle) {
-    guidesToggle.addEventListener('change', (e) => {
-      document.body.classList.toggle('show-guides', e.target.checked);
+// Initialize all charts with absolute dimensions
+function initializeCharts() {
+    console.log('Initializing charts with absolute dimensions...');
+    
+    // Resolve text references first
+    resolvedChartData = resolveTextReferences(chartData);
+    
+    const chartIds = [
+        'leadership-chart',
+        'hr-chart', 
+        'strategy-chart',
+        'communication-chart',
+        'knowledge-chart',
+        'climate-chart'
+    ];
+    
+    const chartKeys = [
+        'leadership',
+        'hr',
+        'strategy', 
+        'communication',
+        'knowledge',
+        'climate'
+    ];
+    
+    chartIds.forEach((canvasId, index) => {
+        const canvas = document.getElementById(canvasId);
+        const chartKey = chartKeys[index];
+        
+        if (canvas && resolvedChartData[chartKey]) {
+            console.log(`Creating chart: ${chartKey}`);
+            
+            // Create chart with absolute configuration
+            chartInstances[chartKey] = new AssessmentChart(canvas, getAbsoluteChartConfig());
+            
+            // Render with resolved data
+            chartInstances[chartKey].render(resolvedChartData[chartKey]);
+        }
     });
-    if (guidesToggle.checked) {
-      document.body.classList.add('show-guides');
-    }
-  }
+    
+    console.log('Charts initialized:', Object.keys(chartInstances));
 }
 
-/**
- * Setup event listeners
- */
-function setupEventListeners() {
-  const generateBtn = document.getElementById('generateBtn');
-  if (generateBtn) {
-    generateBtn.addEventListener('click', generateNewRandomData);
-  }
-
-  const toggleRandomData = document.getElementById('toggleRandomData');
-  if (toggleRandomData) {
-    toggleRandomData.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        generateNewRandomData();
-      }
+// Generate random data (keep your existing functionality)
+function generateRandomData() {
+    Object.keys(chartData).forEach(key => {
+        chartData[key].items.forEach(item => {
+            item.score = Math.floor(Math.random() * 4) + 1;
+        });
     });
-  }
-
-  const downloadBtn = document.getElementById('downloadBtn');
-  if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => {
-      console.log('PDF generation requested');
-    });
-  }
-
-  initializePageGuides();
+    
+    // Re-resolve text and update charts
+    resolvedChartData = resolveTextReferences(chartData);
+    updateAllCharts();
 }
 
-/**
- * Main initialization
- */
-function initializeApplication() {
-  setupCanvasContainers();
-  initializeChartsWithFixedDimensions();
-  setupEventListeners();
-}
-
-/**
- * DOM ready handler
- */
+// Handle DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initializeApplication, 100);
+    console.log('DOM ready - initializing absolute chart system...');
+    
+    // Initialize charts first
+    initializeCharts();
+    
+    // Set up parameter controls (connects to your existing HTML)
+    setupParameterControls();
+
+    // Set up your existing event listeners
+    const generateBtn = document.getElementById('generateBtn');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generateRandomData);
+    }
+
+    const toggleRandomData = document.getElementById('toggleRandomData');
+    if (toggleRandomData) {
+        toggleRandomData.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                generateRandomData();
+            }
+        });
+    }
+    
+    console.log('Absolute chart system ready!');
 });
 
-/**
- * Expose for debugging
- */
+// Expose for debugging
 window.ChartSystem = {
-  charts,
-  chartData,
-  resolvedChartData,
-  controlSystem,
-  rerenderAllCharts,
-  generateNewRandomData
+    charts: chartInstances,
+    params: currentParams,
+    updateAllCharts,
+    generateRandomData
 }; 
