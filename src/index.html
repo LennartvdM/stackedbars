@@ -249,9 +249,10 @@
         .control-panel label {
             display: flex;
             flex-direction: column;
-            align-items: stretch;
+            align-items: center;
             margin-bottom: 12px;
             font-size: 12px;
+            text-align: center;
         }
 
         .control-panel input[type="range"] {
@@ -260,10 +261,9 @@
         }
 
         .control-panel span {
-            align-self: flex-end;
             margin-top: 2px;
             min-width: 40px;
-            text-align: right;
+            text-align: center;
             font-weight: bold;
             color: #1976D2;
             font-size: 11px;
@@ -371,7 +371,7 @@
                 <h4>Spacing</h4>
                 <label>
                     <span>Item Height:</span>
-                    <input type="range" id="itemHeight" min="15" max="40" value="25">
+                    <input type="range" id="itemHeight" min="10" max="40" value="25">
                     <span id="itemHeightValue">25px</span>
                 </label>
                 <label>
@@ -385,12 +385,12 @@
                 <h4>Dimensions</h4>
                 <label>
                     <span>Column Width:</span>
-                    <input type="range" id="colSpacing" min="60" max="100" value="82">
+                    <input type="range" id="colSpacing" min="40" max="100" value="82">
                     <span id="colSpacingValue">82px</span>
                 </label>
                 <label>
                     <span>Label Width:</span>
-                    <input type="range" id="labelWidth" min="300" max="400" value="340">
+                    <input type="range" id="labelWidth" min="200" max="400" value="340">
                     <span id="labelWidthValue">340px</span>
                 </label>
             </div>
@@ -399,17 +399,17 @@
                 <h4>Padding</h4>
                 <label>
                     <span>Top:</span>
-                    <input type="range" id="paddingTop" min="20" max="80" value="60">
+                    <input type="range" id="paddingTop" min="10" max="80" value="60">
                     <span id="paddingTopValue">60px</span>
                 </label>
                 <label>
                     <span>Left:</span>
-                    <input type="range" id="paddingLeft" min="300" max="420" value="380">
+                    <input type="range" id="paddingLeft" min="200" max="420" value="380">
                     <span id="paddingLeftValue">380px</span>
                 </label>
                 <label>
                     <span>Bottom:</span>
-                    <input type="range" id="paddingBottom" min="10" max="40" value="20">
+                    <input type="range" id="paddingBottom" min="5" max="40" value="20">
                     <span id="paddingBottomValue">20px</span>
                 </label>
             </div>
@@ -418,17 +418,17 @@
                 <h4>Typography</h4>
                 <label>
                     <span>Title Size:</span>
-                    <input type="range" id="titleSize" min="16" max="24" value="20">
+                    <input type="range" id="titleSize" min="12" max="24" value="20">
                     <span id="titleSizeValue">20px</span>
                 </label>
                 <label>
                     <span>Label Size:</span>
-                    <input type="range" id="labelSize" min="9" max="14" value="11">
+                    <input type="range" id="labelSize" min="8" max="14" value="11">
                     <span id="labelSizeValue">11px</span>
                 </label>
                 <label>
                     <span>Line Height:</span>
-                    <input type="range" id="lineHeight" min="10" max="18" value="13">
+                    <input type="range" id="lineHeight" min="8" max="18" value="13">
                     <span id="lineHeightValue">13px</span>
                 </label>
             </div>
