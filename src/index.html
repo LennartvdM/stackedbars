@@ -127,6 +127,7 @@
             flex-direction: column;
             min-height: 0; /* Important for flex child */
             padding: 0;
+            justify-content: flex-start; /* Anchor to top */
         }
 
         .chart-section.full-height {
@@ -149,7 +150,7 @@
         /* Canvas sizing */
         .chart-section canvas {
             width: 100% !important;
-            height: 100% !important;
+            height: auto !important; /* Let chart control its own height */
             display: block;
             background: white;
             margin: 0;
