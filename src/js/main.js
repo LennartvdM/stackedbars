@@ -38,38 +38,22 @@ const sampleData = {
   }
 };
 
-const CHART_CONFIG = {
-  fullColumn: {
-    padding: { top: 30, right: 20, bottom: 20, left: 200 },
-    barHeight: 18,
-    barSpacing: 12,
-    brickWidth: 35,
-    font: {
-      title: 'bold 16px Arial',
-      labels: '11px Arial',
-      scores: 'bold 14px Arial'
+function setDynamicCanvasSizes() {
+  const chartMap = [
+    { id: 'leadership-chart', data: sampleData.leadership },
+    { id: 'hr-chart', data: sampleData.hr },
+    { id: 'strategy-chart', data: sampleData.strategy },
+    { id: 'communication-chart', data: sampleData.communication },
+    { id: 'knowledge-chart', data: sampleData.knowledge },
+    { id: 'climate-chart', data: sampleData.climate }
+  ];
+  chartMap.forEach(({ id, data }) => {
+    const canvas = document.getElementById(id);
+    if (canvas && data && data.items) {
+      const height = AssessmentChart.calculateHeight(data.items.length);
+      setCanvasSize(id, 366, height);
     }
-  },
-  halfColumn: {
-    padding: { top: 20, right: 15, bottom: 15, left: 180 },
-    barHeight: 15,
-    barSpacing: 8,
-    brickWidth: 30,
-    font: {
-      title: 'bold 14px Arial',
-      labels: '9px Arial',
-      scores: 'bold 12px Arial'
-    }
-  }
-};
-
-function setFixedCanvasSizes() {
-  setCanvasSize('leadership-chart', 366, 505);
-  setCanvasSize('hr-chart', 366, 505);
-  setCanvasSize('strategy-chart', 366, 237);
-  setCanvasSize('communication-chart', 366, 237);
-  setCanvasSize('knowledge-chart', 366, 237);
-  setCanvasSize('climate-chart', 366, 237);
+  });
 }
 
 function setCanvasSize(id, width, height) {
@@ -84,36 +68,34 @@ function setCanvasSize(id, width, height) {
 
 function renderAllCharts() {
   const chartMap = [
-    { id: 'leadership-chart', data: sampleData.leadership, config: CHART_CONFIG.fullColumn },
-    { id: 'hr-chart', data: sampleData.hr, config: CHART_CONFIG.fullColumn },
-    { id: 'strategy-chart', data: sampleData.strategy, config: CHART_CONFIG.halfColumn },
-    { id: 'communication-chart', data: sampleData.communication, config: CHART_CONFIG.halfColumn },
-    { id: 'knowledge-chart', data: sampleData.knowledge, config: CHART_CONFIG.halfColumn },
-    { id: 'climate-chart', data: sampleData.climate, config: CHART_CONFIG.halfColumn }
+    { id: 'leadership-chart', data: sampleData.leadership },
+    { id: 'hr-chart', data: sampleData.hr },
+    { id: 'strategy-chart', data: sampleData.strategy },
+    { id: 'communication-chart', data: sampleData.communication },
+    { id: 'knowledge-chart', data: sampleData.knowledge },
+    { id: 'climate-chart', data: sampleData.climate }
   ];
-  chartMap.forEach(({ id, data, config }) => {
+  chartMap.forEach(({ id, data }) => {
     const canvas = document.getElementById(id);
     if (canvas) {
-      const chart = new AssessmentChart(canvas, config);
+      const chart = new AssessmentChart(canvas);
       chart.render(data);
     }
   });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  setFixedCanvasSizes();
+  setDynamicCanvasSizes();
   renderAllCharts();
-  const toggle = document.getElementById('toggleGuides');
-  if (toggle) {
-    toggle.addEventListener('change', function() {
-      if (toggle.checked) {
-        document.body.classList.add('show-guides');
-      } else {
-        document.body.classList.remove('show-guides');
-      }
-    });
-    if (toggle.checked) {
-      document.body.classList.add('show-guides');
-    }
-  }
+  const pageToggle = document.getElementById('togglePageGuides');
+  const contentToggle = document.getElementById('toggleContentGuides');
+  pageToggle.addEventListener('change', () => {
+    document.body.classList.toggle('show-page-guides', pageToggle.checked);
+  });
+  contentToggle.addEventListener('change', () => {
+    document.body.classList.toggle('show-content-guides', contentToggle.checked);
+  });
+  // Initialize
+  if (pageToggle.checked) document.body.classList.add('show-page-guides');
+  if (contentToggle.checked) document.body.classList.add('show-content-guides');
 }); 

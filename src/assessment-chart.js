@@ -1,150 +1,181 @@
-export class AssessmentChart {
-  constructor(canvas, config = {}) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.config = {
-      padding: { top: 40, right: 20, bottom: 20, left: 150 },
-      barHeight: 15,
-      barSpacing: 8,
-      brickWidth: 30,
-      maxScore: 4,
-      colors: {
-        brick1: '#E8F4F0',
-        brick2: '#7ECECA',
-        brick3: '#4A9FB5',
-        brick4: '#2B5F7A',
-        text: '#666666',
-        gridLines: '#E0E0E0', // Only for optional chart grid lines, not page guides
-        title: '#1976D2',
-        divider: '#E8E8E8'
-      },
-      font: {
-        title: 'bold 12px Arial',
-        labels: '9px Arial',
-        scores: 'bold 12px Arial'
-      },
-      ...config
-    };
-  }
-
-  /**
-   * Renders the chart data. This does NOT draw any page-level print guides.
-   * Page-level print guides (red lines for margins, columns, etc.) are handled by CSS on .pdf-page.
-   */
-  render(data) {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.drawGridLines(data.items.length); // Only draws chart-internal grid lines if enabled
-    this.drawScaleNumbers();
-    this.drawTitle(data.title);
-    this.drawBars(data.items);
-  }
-
-  /**
-   * Draws optional chart-internal grid lines (not page-level guides).
-   * These lines are for visualizing chart columns only, and are not visible by default.
-   * Page-level print guides are handled by CSS, not by this method.
-   */
-  drawGridLines(itemCount) {
-    const { ctx, config } = this;
-    const { padding, barHeight, barSpacing, brickWidth, maxScore } = config;
-    ctx.save();
-    // By default, do not draw chart grid lines. Uncomment below to enable.
-    // ctx.strokeStyle = config.colors.gridLines;
-    // ctx.lineWidth = 1;
-    // for (let i = 1; i < maxScore; i++) {
-    //   const x = padding.left + i * brickWidth;
-    //   ctx.beginPath();
-    //   ctx.moveTo(x, padding.top);
-    //   ctx.lineTo(x, padding.top + itemCount * (barHeight + barSpacing) - barSpacing);
-    //   ctx.stroke();
-    // }
-    ctx.restore();
-  }
-
-  drawScaleNumbers() {
-    const { ctx, config } = this;
-    const { padding, brickWidth, maxScore, font } = config;
-    ctx.save();
-    ctx.font = font.labels;
-    ctx.fillStyle = config.colors.text;
-    ctx.textAlign = 'center';
-    for (let i = 1; i <= maxScore; i++) {
-      const x = padding.left + (i - 0.5) * brickWidth;
-      ctx.fillText(i, x, padding.top - 16);
+class AssessmentChart {
+    constructor(canvas, userConfig = {}) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        
+        // Measurements
+        this.rectWidth = 80;
+        this.rectHeight = 25;
+        this.rowHeight = 55;
+        this.colSpacing = 82;
+        
+        this.config = {
+            padding: { top: 60, right: 40, bottom: 20, left: 380 },
+            maxScore: 4,
+            colors: {
+                brick1: '#cee7da',
+                brick2: '#6cc6cd', 
+                brick3: '#166e99',
+                brick4: '#182d57',
+                text: '#595959',
+                title: '#076c97',
+                grid: '#D0D0D0',
+                numbers: '#9cc2e4'
+            },
+            font: {
+                title: '500 20px Montserrat',
+                labels: '400 11px Montserrat',
+                scores: 'bold 20px Montserrat'
+            },
+            ...userConfig
+        };
     }
-    ctx.restore();
-  }
 
-  drawTitle(title) {
-    const { ctx, config } = this;
-    ctx.save();
-    ctx.font = config.font.title;
-    ctx.fillStyle = config.colors.title;
-    ctx.textAlign = 'left';
-    ctx.fillText(title, config.padding.left, 24);
-    ctx.restore();
-  }
+    render(data) {
+        if (!data || !data.items || data.items.length === 0) return;
+        
+        this.autoSizeCanvas(data.items.length);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.drawGrid(data.items.length);
+        this.drawTitle(data.title);
+        this.drawScaleNumbers();
+        this.drawBars(data.items);
+    }
 
-  drawBars(items) {
-    const { ctx, config } = this;
-    const { padding, barHeight, barSpacing, brickWidth, colors, maxScore, font } = config;
-    ctx.save();
-    ctx.font = font.labels;
-    ctx.textAlign = 'right';
-    ctx.fillStyle = colors.text;
-    items.forEach((item, i) => {
-      const y = padding.top + i * (barHeight + barSpacing);
-      // Draw label
-      this.wrapText(item.label, padding.left - 10, y + barHeight / 2, font.labels, padding.left - 20);
-      // Draw bricks
-      for (let s = 0; s < maxScore; s++) {
+    autoSizeCanvas(itemCount) {
+        const requiredHeight = this.config.padding.top + 
+                             30 + 
+                             (itemCount * this.rowHeight) + 
+                             this.config.padding.bottom;
+        
+        this.canvas.height = requiredHeight;
+        this.canvas.style.height = requiredHeight + 'px';
+    }
+
+    drawTitle(title) {
+        if (!title) return;
+        
+        const { ctx, config } = this;
         ctx.save();
-        ctx.beginPath();
-        ctx.rect(padding.left + s * brickWidth, y, brickWidth - 2, barHeight);
-        ctx.fillStyle = colors[`brick${s + 1}`];
-        ctx.fill();
+        ctx.font = config.font.title;
+        ctx.fillStyle = config.colors.title;
+        ctx.textAlign = 'left';
+        
+        ctx.fillText(title, 20, 35);
         ctx.restore();
-      }
-      // Draw score overlay
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(padding.left, y, brickWidth * item.score, barHeight);
-      ctx.globalAlpha = 0.5;
-      ctx.fillStyle = colors[`brick${item.score}`] || colors.brick4;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.restore();
-      // Draw score number
-      ctx.save();
-      ctx.font = font.scores;
-      ctx.fillStyle = colors.text;
-      ctx.textAlign = 'left';
-      ctx.fillText(item.score, padding.left + brickWidth * maxScore + 8, y + barHeight - 2);
-      ctx.restore();
-    });
-    ctx.restore();
-  }
-
-  wrapText(text, x, y, font, maxWidth) {
-    const { ctx } = this;
-    ctx.save();
-    ctx.font = font;
-    const words = text.split(' ');
-    let line = '';
-    let lineHeight = 11;
-    let yy = y;
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + ' ';
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && n > 0) {
-        ctx.fillText(line, x, yy);
-        line = words[n] + ' ';
-        yy += lineHeight;
-      } else {
-        line = testLine;
-      }
     }
-    ctx.fillText(line, x, yy);
-    ctx.restore();
-  }
+
+    drawGrid(itemCount) {
+        const { ctx, config } = this;
+        
+        ctx.save();
+        ctx.strokeStyle = config.colors.grid;
+        ctx.lineWidth = 1;
+        
+        const gridStartX = config.padding.left;
+        const gridStartY = config.padding.top + 20;
+        
+        for (let i = 0; i <= config.maxScore; i++) {
+            const x = gridStartX + (i * this.colSpacing);
+            ctx.beginPath();
+            ctx.moveTo(x, gridStartY);
+            ctx.lineTo(x, gridStartY + (itemCount * this.rowHeight));
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+
+    drawScaleNumbers() {
+        const { ctx, config } = this;
+        
+        ctx.save();
+        ctx.font = config.font.scores;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = config.colors.numbers;
+        
+        const headerY = config.padding.top + 15;
+        
+        for (let i = 1; i <= config.maxScore; i++) {
+            const x = config.padding.left + ((i - 1) * this.colSpacing) + (this.colSpacing / 2);
+            ctx.fillText(i.toString(), x, headerY);
+        }
+        
+        ctx.restore();
+    }
+
+    drawBars(items) {
+        items.forEach((item, index) => {
+            const y = this.config.padding.top + 20 + (index * this.rowHeight);
+            
+            this.drawBrickSegments(item.score, y);
+            this.drawQuestionLabel(item.label, y);
+        });
+    }
+
+    drawBrickSegments(score, y) {
+        const { ctx, config } = this;
+        
+        for (let segment = 1; segment <= score; segment++) {
+            const x = config.padding.left + ((segment - 1) * this.colSpacing);
+            const colorKey = `brick${segment}`;
+            
+            ctx.fillStyle = config.colors[colorKey];
+            ctx.fillRect(x, y + 15, this.colSpacing, this.rectHeight);
+        }
+    }
+
+    drawQuestionLabel(text, y) {
+        const { ctx, config } = this;
+        
+        ctx.save();
+        ctx.font = config.font.labels;
+        ctx.fillStyle = config.colors.text;
+        ctx.textAlign = 'center';
+        
+        const maxWidth = config.padding.left - 40;
+        const lines = this.wrapText(text, maxWidth);
+        
+        const lineHeight = 13;
+        const totalHeight = lines.length * lineHeight;
+        const startY = y + (this.rowHeight / 2) - (totalHeight / 2) + lineHeight;
+        
+        lines.forEach((line, lineIndex) => {
+            const lineY = startY + (lineIndex * lineHeight);
+            ctx.fillText(line, config.padding.left / 2, lineY);
+        });
+        
+        ctx.restore();
+    }
+
+    wrapText(text, maxWidth) {
+        const { ctx } = this;
+        
+        if (ctx.measureText(text).width <= maxWidth) {
+            return [text];
+        }
+        
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = words[0];
+        
+        for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine + ' ' + word;
+            
+            if (ctx.measureText(testLine).width <= maxWidth) {
+                currentLine = testLine;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+        
+        return lines.slice(0, 3);
+    }
 } 

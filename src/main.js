@@ -1,6 +1,10 @@
 import { AssessmentChart } from './assessment-chart.js';
 
-const sampleData = {
+// Store current data state
+let useRandomData = false;
+
+// Original sample data
+const originalSampleData = {
   leadership: {
     title: "Leiderschap",
     items: [
@@ -78,6 +82,33 @@ const sampleData = {
     ]
   }
 };
+
+// Generate random score between 1-4
+function getRandomScore() {
+  return Math.floor(Math.random() * 4) + 1;
+}
+
+// Generate random data based on original structure
+function generateRandomData() {
+  const randomData = {};
+  
+  Object.keys(originalSampleData).forEach(key => {
+    randomData[key] = {
+      title: originalSampleData[key].title,
+      items: originalSampleData[key].items.map(item => ({
+        label: item.label,
+        score: getRandomScore()
+      }))
+    };
+  });
+  
+  return randomData;
+}
+
+// Get current data based on toggle state
+function getCurrentData() {
+  return useRandomData ? generateRandomData() : originalSampleData;
+}
 
 function drawPrintingGuides(canvas) {
   const ctx = canvas.getContext('2d');
@@ -159,11 +190,21 @@ function drawPrintingGuides(canvas) {
 }
 
 function renderAllCharts(showGuides = true) {
-  Object.entries(sampleData).forEach(([key, data]) => {
-    const canvasId = `${key}-chart`;
-    const canvas = document.getElementById(canvasId);
+  const data = getCurrentData();
+  
+  const chartMap = [
+    { id: 'leadership-chart', data: data.leadership, config: CHART_CONFIG.fullColumn },
+    { id: 'hr-chart', data: data.hr, config: CHART_CONFIG.fullColumn },
+    { id: 'strategy-chart', data: data.strategy, config: CHART_CONFIG.halfColumn },
+    { id: 'communication-chart', data: data.communication, config: CHART_CONFIG.halfColumn },
+    { id: 'knowledge-chart', data: data.knowledge, config: CHART_CONFIG.halfColumn },
+    { id: 'climate-chart', data: data.climate, config: CHART_CONFIG.halfColumn }
+  ];
+  
+  chartMap.forEach(({ id, data, config }) => {
+    const canvas = document.getElementById(id);
     if (canvas) {
-      const chart = new AssessmentChart(canvas);
+      const chart = new AssessmentChart(canvas, config);
       chart.render(data);
       if (showGuides) drawPrintingGuides(canvas);
     }
@@ -171,9 +212,41 @@ function renderAllCharts(showGuides = true) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const toggle = document.getElementById('toggleGuides');
-  renderAllCharts(toggle.checked);
-  toggle.addEventListener('change', () => {
-    renderAllCharts(toggle.checked);
-  });
+  setFixedCanvasSizes();
+  renderAllCharts();
+  
+  // Handle print guides toggle
+  const guidesToggle = document.getElementById('toggleGuides');
+  if (guidesToggle) {
+    guidesToggle.addEventListener('change', function() {
+      if (guidesToggle.checked) {
+        document.body.classList.add('show-guides');
+      } else {
+        document.body.classList.remove('show-guides');
+      }
+    });
+    if (guidesToggle.checked) {
+      document.body.classList.add('show-guides');
+    }
+  }
+  
+  // Handle random data toggle
+  const randomDataToggle = document.getElementById('toggleRandomData');
+  if (randomDataToggle) {
+    randomDataToggle.addEventListener('change', function() {
+      useRandomData = randomDataToggle.checked;
+      renderAllCharts();
+    });
+  }
+  
+  // Handle "Generate New Random Data" button
+  const generateBtn = document.getElementById('generateBtn');
+  if (generateBtn) {
+    generateBtn.addEventListener('click', function() {
+      if (useRandomData) {
+        renderAllCharts(); // This will generate fresh random data
+      }
+    });
+  }
+}); 
 }); 
