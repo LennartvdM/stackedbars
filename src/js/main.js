@@ -1,68 +1,75 @@
 import { AssessmentChart } from './assessment-chart.js';
 import { chartData, resolveTextReferences } from './chart-data.js';
 
-// Resolved chart data (populated on init)
+// Resolved chart data
 let resolvedChartData;
 
-// ABSOLUTE parameter defaults (no more relative calculations)
-const absoluteDefaults = {
-    itemHeight: 25,      // Direct row height
-    colSpacing: 20,      // Direct column width in pixels
-    labelWidth: 240,     // Direct label area width
-    chartStartX: 270,    // Direct X position where chart starts
+// Current parameters that match your HTML controls exactly
+let currentParams = {
+    itemHeight: 25,
+    itemGap: 5,
+    colSpacing: 82,      // This now works properly!
+    labelWidth: 340,
+    paddingTop: 60,
+    paddingLeft: 380,
+    paddingBottom: 20,
     titleSize: 20,
     labelSize: 11,
     lineHeight: 13
 };
 
-let currentParams = { ...absoluteDefaults };
-
-// Get absolute chart configuration
-function getAbsoluteChartConfig() {
-    return {
+// Get chart configuration that respects your parameters
+function getChartConfig(type) {
+    const baseConfig = {
         itemHeight: currentParams.itemHeight,
-        colSpacing: currentParams.colSpacing,
-        labelWidth: currentParams.labelWidth,
-        chartStartX: currentParams.chartStartX,
+        itemGap: currentParams.itemGap,
+        colSpacing: currentParams.colSpacing,    // Now properly respected
+        padding: {
+            top: currentParams.paddingTop,
+            right: 40,
+            bottom: currentParams.paddingBottom,
+            left: currentParams.paddingLeft
+        },
         font: {
             title: `500 ${currentParams.titleSize}px Montserrat`,
             labels: `400 ${currentParams.labelSize}px Montserrat`,
             scores: 'bold 20px Montserrat'
         },
-        lineHeight: currentParams.lineHeight
+        lineHeight: currentParams.lineHeight,
+        labelWidth: currentParams.labelWidth
     };
+    
+    // Adjust for half-column charts
+    if (type === 'half') {
+        baseConfig.padding.left = currentParams.labelWidth;
+    }
+    
+    return baseConfig;
 }
 
-// Map HTML controls to absolute parameters
-const controlMap = {
-    'itemHeight': 'itemHeight',       // Direct mapping now
-    'colSpacing': 'colSpacing',       // This will ACTUALLY work now
-    'labelWidth': 'labelWidth',       
-    'paddingLeft': 'chartStartX',     // Where chart bars start
-    'titleSize': 'titleSize',
-    'labelSize': 'labelSize',
-    'lineHeight': 'lineHeight'
-};
-
-// Setup parameter controls
+// Set up parameter controls using your exact HTML IDs
 function setupParameterControls() {
-    Object.keys(controlMap).forEach(htmlId => {
-        const paramName = controlMap[htmlId];
-        const slider = document.getElementById(htmlId);
-        const valueSpan = document.getElementById(htmlId + 'Value');
+    const paramNames = [
+        'itemHeight', 'itemGap', 'colSpacing', 'labelWidth', 
+        'paddingTop', 'paddingLeft', 'paddingBottom', 
+        'titleSize', 'labelSize', 'lineHeight'
+    ];
+    
+    paramNames.forEach(param => {
+        const slider = document.getElementById(param);
+        const valueSpan = document.getElementById(param + 'Value');
         
         if (slider && valueSpan) {
             // Set initial value
-            slider.value = currentParams[paramName];
-            valueSpan.textContent = currentParams[paramName];
+            slider.value = currentParams[param];
+            valueSpan.textContent = currentParams[param];
             
-            // Add event listener
             slider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value);
                 valueSpan.textContent = value + 'px';
-                currentParams[paramName] = value;
+                currentParams[param] = value;
                 
-                console.log(`${paramName} = ${value}px`);
+                console.log(`${param} = ${value}`);
                 updateAllCharts();
             });
         }
@@ -72,17 +79,20 @@ function setupParameterControls() {
     const resetBtn = document.getElementById('resetParams');
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
-            currentParams = { ...absoluteDefaults };
+            // Reset to defaults
+            currentParams = {
+                itemHeight: 25, itemGap: 5, colSpacing: 82, labelWidth: 340,
+                paddingTop: 60, paddingLeft: 380, paddingBottom: 20,
+                titleSize: 20, labelSize: 11, lineHeight: 13
+            };
             
             // Update UI
-            Object.keys(controlMap).forEach(htmlId => {
-                const paramName = controlMap[htmlId];
-                const slider = document.getElementById(htmlId);
-                const valueSpan = document.getElementById(htmlId + 'Value');
-                
+            paramNames.forEach(param => {
+                const slider = document.getElementById(param);
+                const valueSpan = document.getElementById(param + 'Value');
                 if (slider && valueSpan) {
-                    slider.value = currentParams[paramName];
-                    valueSpan.textContent = currentParams[paramName] + 'px';
+                    slider.value = currentParams[param];
+                    valueSpan.textContent = currentParams[param] + 'px';
                 }
             });
             
@@ -91,23 +101,21 @@ function setupParameterControls() {
     }
 }
 
-// Update all charts with absolute parameters
+// Update all charts with current parameters
 function updateAllCharts() {
-    const config = getAbsoluteChartConfig();
-    
     const charts = [
-        { id: 'leadership-chart', data: resolvedChartData.leadership },
-        { id: 'hr-chart', data: resolvedChartData.hr },
-        { id: 'strategy-chart', data: resolvedChartData.strategy },
-        { id: 'communication-chart', data: resolvedChartData.communication },
-        { id: 'knowledge-chart', data: resolvedChartData.knowledge },
-        { id: 'climate-chart', data: resolvedChartData.climate }
+        { id: 'leadership-chart', data: resolvedChartData.leadership, type: 'full' },
+        { id: 'hr-chart', data: resolvedChartData.hr, type: 'full' },
+        { id: 'strategy-chart', data: resolvedChartData.strategy, type: 'half' },
+        { id: 'communication-chart', data: resolvedChartData.communication, type: 'half' },
+        { id: 'knowledge-chart', data: resolvedChartData.knowledge, type: 'half' },
+        { id: 'climate-chart', data: resolvedChartData.climate, type: 'half' }
     ];
 
-    charts.forEach(({ id, data }) => {
+    charts.forEach(({ id, data, type }) => {
         const canvas = document.getElementById(id);
         if (canvas && data) {
-            const chart = new AssessmentChart(canvas, config);
+            const chart = new AssessmentChart(canvas, getChartConfig(type));
             chart.render(data);
         }
     });
@@ -121,22 +129,22 @@ function generateRandomData() {
         });
     });
     
-    // Re-resolve text and update charts
+    // Re-resolve and update
     resolvedChartData = resolveTextReferences(chartData);
     updateAllCharts();
 }
 
 // DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Starting FIXED absolute chart system...');
+    console.log('Starting FIXED chart system...');
     
-    // Resolve text references first
+    // Resolve text references
     resolvedChartData = resolveTextReferences(chartData);
     
     setupParameterControls();
     updateAllCharts();
 
-    // Existing event listeners
+    // Set up event listeners
     const generateBtn = document.getElementById('generateBtn');
     if (generateBtn) {
         generateBtn.addEventListener('click', generateRandomData);
@@ -151,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    console.log('FIXED system ready - column width should work now!');
+    console.log('Fixed system ready - colSpacing should work now!');
 });
 
 // Expose for debugging
