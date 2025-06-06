@@ -4,100 +4,85 @@ import { chartData, resolveTextReferences } from './chart-data.js';
 // Resolved chart data (populated on init)
 let resolvedChartData;
 
-// Store chart instances
-let chartInstances = {};
-
-// Current absolute parameters - mapped to your existing HTML controls
-let currentParams = {
-    // Map your existing controls to absolute parameters
-    rowHeight: 25,              // itemHeight -> rowHeight
-    columnWidth: 20,            // colSpacing -> columnWidth (NOW WORKS!)
-    labelAreaWidth: 240,        // labelWidth -> labelAreaWidth
-    chartAreaX: 270,            // paddingLeft -> chartAreaX
-    titleY: 25,                 // paddingTop -> titleY
-    titleFontSize: 16,          // titleSize -> titleFontSize
-    labelFontSize: 10,          // labelSize -> labelFontSize
-    lineHeight: 12              // lineHeight stays same
+// ABSOLUTE parameter defaults (no more relative calculations)
+const absoluteDefaults = {
+    itemHeight: 25,      // Direct row height
+    colSpacing: 20,      // Direct column width in pixels
+    labelWidth: 240,     // Direct label area width
+    chartStartX: 270,    // Direct X position where chart starts
+    titleSize: 20,
+    labelSize: 11,
+    lineHeight: 13
 };
 
-// Map your existing HTML control IDs to new absolute parameter names
-const controlMapping = {
-    'itemHeight': 'rowHeight',
-    'colSpacing': 'columnWidth', 
-    'labelWidth': 'labelAreaWidth',
-    'paddingLeft': 'chartAreaX',
-    'paddingTop': 'titleY',
-    'titleSize': 'titleFontSize',
-    'labelSize': 'labelFontSize',
-    'lineHeight': 'lineHeight'
-};
+let currentParams = { ...absoluteDefaults };
 
-// Get chart configuration with current absolute parameters
+// Get absolute chart configuration
 function getAbsoluteChartConfig() {
     return {
-        rowHeight: currentParams.rowHeight,
-        columnWidth: currentParams.columnWidth,
-        labelAreaWidth: currentParams.labelAreaWidth,
-        chartAreaX: currentParams.chartAreaX,
-        titleY: currentParams.titleY,
-        titleFontSize: currentParams.titleFontSize,
-        labelFontSize: currentParams.labelFontSize,
+        itemHeight: currentParams.itemHeight,
+        colSpacing: currentParams.colSpacing,
+        labelWidth: currentParams.labelWidth,
+        chartStartX: currentParams.chartStartX,
+        font: {
+            title: `500 ${currentParams.titleSize}px Montserrat`,
+            labels: `400 ${currentParams.labelSize}px Montserrat`,
+            scores: 'bold 20px Montserrat'
+        },
         lineHeight: currentParams.lineHeight
     };
 }
 
-// Set up parameter controls (using your existing HTML)
+// Map HTML controls to absolute parameters
+const controlMap = {
+    'itemHeight': 'itemHeight',       // Direct mapping now
+    'colSpacing': 'colSpacing',       // This will ACTUALLY work now
+    'labelWidth': 'labelWidth',       
+    'paddingLeft': 'chartStartX',     // Where chart bars start
+    'titleSize': 'titleSize',
+    'labelSize': 'labelSize',
+    'lineHeight': 'lineHeight'
+};
+
+// Setup parameter controls
 function setupParameterControls() {
-    // Connect your existing HTML controls to absolute parameters
-    Object.keys(controlMapping).forEach(htmlControlId => {
-        const absoluteParam = controlMapping[htmlControlId];
-        const slider = document.getElementById(htmlControlId);
-        const valueSpan = document.getElementById(htmlControlId + 'Value');
+    Object.keys(controlMap).forEach(htmlId => {
+        const paramName = controlMap[htmlId];
+        const slider = document.getElementById(htmlId);
+        const valueSpan = document.getElementById(htmlId + 'Value');
         
         if (slider && valueSpan) {
             // Set initial value
-            if (currentParams[absoluteParam] !== undefined) {
-                slider.value = currentParams[absoluteParam];
-                valueSpan.textContent = currentParams[absoluteParam];
-            }
+            slider.value = currentParams[paramName];
+            valueSpan.textContent = currentParams[paramName];
             
             // Add event listener
             slider.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value);
                 valueSpan.textContent = value + 'px';
-                currentParams[absoluteParam] = value;
+                currentParams[paramName] = value;
                 
-                console.log(`Updated ${absoluteParam} to ${value}`);
+                console.log(`${paramName} = ${value}px`);
                 updateAllCharts();
             });
         }
     });
     
-    // Reset button (using your existing button)
+    // Reset button
     const resetBtn = document.getElementById('resetParams');
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
-            // Reset to defaults
-            currentParams = {
-                rowHeight: 25,
-                columnWidth: 20,
-                labelAreaWidth: 240,
-                chartAreaX: 270,
-                titleY: 25,
-                titleFontSize: 16,
-                labelFontSize: 10,
-                lineHeight: 12
-            };
+            currentParams = { ...absoluteDefaults };
             
-            // Update UI controls
-            Object.keys(controlMapping).forEach(htmlControlId => {
-                const absoluteParam = controlMapping[htmlControlId];
-                const slider = document.getElementById(htmlControlId);
-                const valueSpan = document.getElementById(htmlControlId + 'Value');
+            // Update UI
+            Object.keys(controlMap).forEach(htmlId => {
+                const paramName = controlMap[htmlId];
+                const slider = document.getElementById(htmlId);
+                const valueSpan = document.getElementById(htmlId + 'Value');
                 
-                if (slider && valueSpan && currentParams[absoluteParam] !== undefined) {
-                    slider.value = currentParams[absoluteParam];
-                    valueSpan.textContent = currentParams[absoluteParam] + 'px';
+                if (slider && valueSpan) {
+                    slider.value = currentParams[paramName];
+                    valueSpan.textContent = currentParams[paramName] + 'px';
                 }
             });
             
@@ -106,63 +91,29 @@ function setupParameterControls() {
     }
 }
 
-// Update all charts with current absolute parameters
+// Update all charts with absolute parameters
 function updateAllCharts() {
     const config = getAbsoluteChartConfig();
     
-    // Update each chart instance
-    Object.keys(chartInstances).forEach(chartKey => {
-        if (chartInstances[chartKey] && resolvedChartData[chartKey]) {
-            chartInstances[chartKey].updateConfig(config);
-            chartInstances[chartKey].render(resolvedChartData[chartKey]);
+    const charts = [
+        { id: 'leadership-chart', data: resolvedChartData.leadership },
+        { id: 'hr-chart', data: resolvedChartData.hr },
+        { id: 'strategy-chart', data: resolvedChartData.strategy },
+        { id: 'communication-chart', data: resolvedChartData.communication },
+        { id: 'knowledge-chart', data: resolvedChartData.knowledge },
+        { id: 'climate-chart', data: resolvedChartData.climate }
+    ];
+
+    charts.forEach(({ id, data }) => {
+        const canvas = document.getElementById(id);
+        if (canvas && data) {
+            const chart = new AssessmentChart(canvas, config);
+            chart.render(data);
         }
     });
 }
 
-// Initialize all charts with absolute dimensions
-function initializeCharts() {
-    console.log('Initializing charts with absolute dimensions...');
-    
-    // Resolve text references first
-    resolvedChartData = resolveTextReferences(chartData);
-    
-    const chartIds = [
-        'leadership-chart',
-        'hr-chart', 
-        'strategy-chart',
-        'communication-chart',
-        'knowledge-chart',
-        'climate-chart'
-    ];
-    
-    const chartKeys = [
-        'leadership',
-        'hr',
-        'strategy', 
-        'communication',
-        'knowledge',
-        'climate'
-    ];
-    
-    chartIds.forEach((canvasId, index) => {
-        const canvas = document.getElementById(canvasId);
-        const chartKey = chartKeys[index];
-        
-        if (canvas && resolvedChartData[chartKey]) {
-            console.log(`Creating chart: ${chartKey}`);
-            
-            // Create chart with absolute configuration
-            chartInstances[chartKey] = new AssessmentChart(canvas, getAbsoluteChartConfig());
-            
-            // Render with resolved data
-            chartInstances[chartKey].render(resolvedChartData[chartKey]);
-        }
-    });
-    
-    console.log('Charts initialized:', Object.keys(chartInstances));
-}
-
-// Generate random data (keep your existing functionality)
+// Generate random data
 function generateRandomData() {
     Object.keys(chartData).forEach(key => {
         chartData[key].items.forEach(item => {
@@ -175,17 +126,17 @@ function generateRandomData() {
     updateAllCharts();
 }
 
-// Handle DOM ready
+// DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM ready - initializing absolute chart system...');
+    console.log('Starting FIXED absolute chart system...');
     
-    // Initialize charts first
-    initializeCharts();
+    // Resolve text references first
+    resolvedChartData = resolveTextReferences(chartData);
     
-    // Set up parameter controls (connects to your existing HTML)
     setupParameterControls();
+    updateAllCharts();
 
-    // Set up your existing event listeners
+    // Existing event listeners
     const generateBtn = document.getElementById('generateBtn');
     if (generateBtn) {
         generateBtn.addEventListener('click', generateRandomData);
@@ -200,12 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    console.log('Absolute chart system ready!');
+    console.log('FIXED system ready - column width should work now!');
 });
 
 // Expose for debugging
 window.ChartSystem = {
-    charts: chartInstances,
     params: currentParams,
     updateAllCharts,
     generateRandomData

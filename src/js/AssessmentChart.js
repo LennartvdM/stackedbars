@@ -3,39 +3,28 @@ class AssessmentChart {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
-        // FIXED ABSOLUTE CONFIGURATION - no relative calculations
+        // FIXED ABSOLUTE CONFIGURATION - replaces your relative system
         this.config = {
-            // Chart dimensions - FIXED PIXELS ONLY
-            canvasWidth: 366,           // Fixed canvas width
-            canvasHeight: 400,          // Fixed canvas height (will be adjusted per chart)
+            // Remove all relative calculations - use absolute pixels only
+            itemHeight: 25,           // Direct control - no derived rowHeight
+            colSpacing: 20,           // Direct pixel width per column (NOT divided by maxScore)
+            labelWidth: 240,          // Direct pixel width for labels
             
-            // Layout areas - ABSOLUTE POSITIONS
-            titleX: 20,                 // Title X position
-            titleY: 25,                 // Title Y position from top
+            // Absolute positioning - anchored to top-left
+            titleX: 20,
+            titleY: 25,
+            labelsStartX: 20,
+            chartStartX: 270,         // Fixed X where chart bars start
+            barsStartY: 90,           // Fixed Y where bars start
             
-            labelAreaX: 20,             // Label area start X
-            labelAreaY: 60,             // Label area start Y
-            labelAreaWidth: 240,        // Fixed label area width
+            padding: { 
+                top: 60, 
+                right: 40, 
+                bottom: 20, 
+                left: 270  // This becomes chartStartX
+            },
             
-            chartAreaX: 270,            // Chart bars start X (labelAreaX + labelAreaWidth + gap)
-            chartAreaY: 60,             // Chart area start Y
-            chartAreaWidth: 80,         // Fixed chart area width
-            
-            // Grid - FIXED DIMENSIONS
-            columnWidth: 20,            // Fixed column width in pixels
-            rowHeight: 25,              // Fixed row height in pixels
-            
-            // Score numbers position
-            scoreNumbersY: 75,          // Y position for score numbers (1,2,3,4)
-            barsStartY: 90,             // Y position where bars start
-            
-            // Typography - FIXED SIZES
-            titleFontSize: 16,
-            labelFontSize: 10,
-            scoreFontSize: 12,
-            lineHeight: 12,
-            
-            // Colors
+            maxScore: 4,
             colors: {
                 brick1: '#cee7da',
                 brick2: '#6cc6cd', 
@@ -46,193 +35,147 @@ class AssessmentChart {
                 grid: '#D0D0D0',
                 numbers: '#9cc2e4'
             },
+            font: {
+                title: '500 20px Montserrat',
+                labels: '400 11px Montserrat',
+                scores: 'bold 20px Montserrat'
+            },
+            lineHeight: 13,
             
             // Apply user overrides
             ...userConfig
         };
 
-        // Set canvas to exact fixed dimensions
-        this.setFixedCanvasSize();
+        // REMOVE derived calculations - everything is absolute now
+        // No more: this.rowHeight = this.config.itemHeight + this.config.itemGap;
+        // No more: this.rectWidth = this.config.colSpacing;
     }
 
-    setFixedCanvasSize() {
-        const dpr = window.devicePixelRatio || 1;
-        
-        // Set exact canvas dimensions
-        this.canvas.width = this.config.canvasWidth * dpr;
-        this.canvas.height = this.config.canvasHeight * dpr;
-        
-        // Reset any existing transforms
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this.ctx.scale(dpr, dpr);
-        
-        // Set exact CSS size
-        this.canvas.style.width = this.config.canvasWidth + 'px';
-        this.canvas.style.height = this.config.canvasHeight + 'px';
+    autoSizeCanvas(itemCount) {
+        // Simplified - just calculate height needed
+        const requiredHeight = this.config.barsStartY + (itemCount * this.config.itemHeight) + 40;
+        this.canvas.height = requiredHeight;
+        this.canvas.style.height = requiredHeight + 'px';
     }
 
-    // Calculate height needed for specific number of items
-    calculateHeightForItems(itemCount) {
-        return this.config.barsStartY + (itemCount * this.config.rowHeight) + 30;
-    }
-
-    // Update parameters and re-size canvas
-    updateConfig(newConfig) {
-        Object.assign(this.config, newConfig);
-        this.setFixedCanvasSize();
-    }
+    // REMOVE calculateMeasurements() - was causing the column width problem
+    // calculateMeasurements(itemCount) {
+    //     // This was the problem - dividing available width destroyed column control
+    //     // const availableChartWidth = canvasWidth - leftPadding;
+    //     // this.rectWidth = Math.floor(availableChartWidth / this.config.maxScore);
+    // }
 
     render(data) {
         if (!data || !data.items || data.items.length === 0) return;
         
-        // Auto-adjust canvas height for this chart's item count
-        const requiredHeight = this.calculateHeightForItems(data.items.length);
-        if (this.config.canvasHeight !== requiredHeight) {
-            this.config.canvasHeight = requiredHeight;
-            this.setFixedCanvasSize();
-        }
+        this.autoSizeCanvas(data.items.length);
+        // REMOVED: this.calculateMeasurements(data.items.length);  // This was the problem!
         
-        // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Render in fixed order, all top-anchored
-        this.renderTitle(data.title);
-        this.renderGrid(data.items.length);
-        this.renderScoreNumbers();
-        this.renderItems(data.items);
+        this.drawGrid(data.items.length);
+        this.drawTitle(data.title);
+        this.drawScaleNumbers();
+        this.drawBars(data.items);
     }
 
-    renderTitle(title) {
+    drawTitle(title) {
         if (!title) return;
-        
         const { ctx, config } = this;
         ctx.save();
-        
-        // Fixed font - never changes with parameters
-        ctx.font = `500 ${config.titleFontSize}px Montserrat, sans-serif`;
+        ctx.font = config.font.title;
         ctx.fillStyle = config.colors.title;
         ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        
-        // Fixed position - anchored to top-left
+        ctx.textBaseline = 'top';  // TOP-ANCHORED instead of baseline
         ctx.fillText(title, config.titleX, config.titleY);
-        
         ctx.restore();
     }
 
-    renderGrid(itemCount) {
+    drawGrid(itemCount) {
         const { ctx, config } = this;
-        
         ctx.save();
         ctx.strokeStyle = config.colors.grid;
         ctx.lineWidth = 1;
         
-        // Fixed grid dimensions
-        const gridHeight = itemCount * config.rowHeight;
+        // Fixed grid using absolute colSpacing
+        const gridStartX = config.chartStartX;
+        const gridStartY = config.barsStartY;
+        const gridHeight = itemCount * config.itemHeight;
         
-        // Draw exactly 5 vertical lines (for 4 score columns)
-        for (let i = 0; i <= 4; i++) {
-            const x = config.chartAreaX + (i * config.columnWidth);
-            
+        for (let i = 0; i <= config.maxScore; i++) {
+            const x = gridStartX + (i * config.colSpacing);  // Use direct colSpacing
             ctx.beginPath();
-            ctx.moveTo(x, config.barsStartY);
-            ctx.lineTo(x, config.barsStartY + gridHeight);
+            ctx.moveTo(x, gridStartY);
+            ctx.lineTo(x, gridStartY + gridHeight);
             ctx.stroke();
         }
-        
         ctx.restore();
     }
 
-    renderScoreNumbers() {
+    drawScaleNumbers() {
         const { ctx, config } = this;
-        
         ctx.save();
-        
-        // Fixed font
-        ctx.font = `bold ${config.scoreFontSize}px Montserrat, sans-serif`;
+        ctx.font = config.font.scores;
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
         ctx.fillStyle = config.colors.numbers;
         
-        // Draw numbers 1-4 at fixed positions
-        for (let i = 1; i <= 4; i++) {
-            const x = config.chartAreaX + ((i - 1) * config.columnWidth) + (config.columnWidth / 2);
-            ctx.fillText(i.toString(), x, config.scoreNumbersY);
-        }
+        const headerY = config.barsStartY - 15;  // Fixed position above bars
         
+        for (let i = 1; i <= config.maxScore; i++) {
+            const x = config.chartStartX + ((i - 1) * config.colSpacing) + (config.colSpacing / 2);
+            ctx.fillText(i.toString(), x, headerY);
+        }
         ctx.restore();
     }
 
-    renderItems(items) {
+    drawBars(items) {
         items.forEach((item, index) => {
-            // Fixed Y position for this item - top-anchored
-            const itemY = this.config.barsStartY + (index * this.config.rowHeight);
-            
-            this.renderItemLabel(item.label, itemY);
-            this.renderItemBars(item.score, itemY);
+            const y = this.config.barsStartY + (index * this.config.itemHeight);  // TOP-ANCHORED
+            this.drawBrickSegments(item.score, y);
+            this.drawQuestionLabel(item.label, y);
         });
     }
 
-    renderItemLabel(text, itemY) {
+    drawBrickSegments(score, y) {
         const { ctx, config } = this;
-        
+        for (let segment = 1; segment <= score; segment++) {
+            const x = config.chartStartX + ((segment - 1) * config.colSpacing);  // Use direct colSpacing
+            const colorKey = `brick${segment}`;
+            ctx.fillStyle = config.colors[colorKey];
+            ctx.fillRect(x, y, config.colSpacing, config.itemHeight);  // Use exact dimensions
+        }
+    }
+
+    drawQuestionLabel(text, y) {
+        const { ctx, config } = this;
         ctx.save();
-        
-        // Fixed font - never changes
-        ctx.font = `400 ${config.labelFontSize}px Montserrat, sans-serif`;
+        ctx.font = config.font.labels;
         ctx.fillStyle = config.colors.text;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
+        ctx.textAlign = 'left';  // LEFT-ANCHORED instead of center
+        ctx.textBaseline = 'top';  // TOP-ANCHORED
         
-        // Wrap text to fixed width
-        const lines = this.wrapTextToFixedWidth(text, config.labelAreaWidth - 10);
+        const maxWidth = config.labelWidth - 40;
+        const lines = this.wrapText(text, maxWidth);
         
-        // Calculate starting Y for vertical centering within row
-        const totalTextHeight = lines.length * config.lineHeight;
-        const textStartY = itemY + ((config.rowHeight - totalTextHeight) / 2);
-        
-        // Draw each line at fixed positions - top-anchored
+        // TOP-ANCHORED positioning
         lines.forEach((line, lineIndex) => {
-            const lineY = textStartY + (lineIndex * config.lineHeight);
-            ctx.fillText(line, config.labelAreaX, lineY);
+            const lineY = y + (lineIndex * config.lineHeight);
+            ctx.fillText(line, config.labelsStartX, lineY);
         });
         
         ctx.restore();
     }
 
-    renderItemBars(score, itemY) {
-        const { ctx, config } = this;
-        
-        // Fixed bar dimensions
-        const barHeight = Math.floor(config.rowHeight * 0.6);
-        const barY = itemY + ((config.rowHeight - barHeight) / 2);
-        
-        // Draw score bars at fixed positions
-        for (let segment = 1; segment <= score; segment++) {
-            const barX = config.chartAreaX + ((segment - 1) * config.columnWidth);
-            
-            ctx.fillStyle = config.colors[`brick${segment}`];
-            ctx.fillRect(barX, barY, config.columnWidth, barHeight);
-        }
-    }
-
-    wrapTextToFixedWidth(text, maxWidth) {
+    wrapText(text, maxWidth) {
         const { ctx } = this;
-        
-        // Quick check - if text fits, return as single line
         if (ctx.measureText(text).width <= maxWidth) {
             return [text];
         }
-        
-        // Split and wrap to fixed width
         const words = text.split(' ');
         const lines = [];
         let currentLine = words[0];
-        
         for (let i = 1; i < words.length; i++) {
             const word = words[i];
             const testLine = currentLine + ' ' + word;
-            
             if (ctx.measureText(testLine).width <= maxWidth) {
                 currentLine = testLine;
             } else {
@@ -240,12 +183,9 @@ class AssessmentChart {
                 currentLine = word;
             }
         }
-        
         if (currentLine) {
             lines.push(currentLine);
         }
-        
-        // Hard limit to 3 lines to prevent overflow
         return lines.slice(0, 3);
     }
 }
