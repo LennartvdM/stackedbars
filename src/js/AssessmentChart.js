@@ -3,247 +3,228 @@ class AssessmentChart {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
-        // Initialize canvas with proper sizing
-        this.initCanvas();
-        
-        // ABSOLUTE DIMENSIONS - Based on HR chart as reference (14 items)
-        // These are fixed values that ensure consistent layout across all charts
-        this.ABSOLUTE_DIMENSIONS = {
-            // Canvas dimensions
-            canvasWidth: 366,
-            canvasHeight: 400, // Fixed height that works well for HR chart
+        // FIXED ABSOLUTE CONFIGURATION - no relative calculations
+        this.config = {
+            // Chart dimensions - FIXED PIXELS ONLY
+            canvasWidth: 366,           // Fixed canvas width
+            canvasHeight: 400,          // Fixed canvas height (will be adjusted per chart)
             
-            // Layout dimensions (absolute values)
-            labelWidth: 240,        // Fixed width for label area
-            chartWidth: 120,        // Fixed width for chart area (4 columns × 30px)
-            columnWidth: 30,        // Fixed width per score column
-            rowHeight: 22,          // Fixed height per item row
+            // Layout areas - ABSOLUTE POSITIONS
+            titleX: 20,                 // Title X position
+            titleY: 25,                 // Title Y position from top
             
-            // Padding (absolute values)
-            paddingTop: 50,
-            paddingLeft: 10,        // Left edge padding
-            paddingRight: 6,        // Right edge padding
-            paddingBottom: 20,
+            labelAreaX: 20,             // Label area start X
+            labelAreaY: 60,             // Label area start Y
+            labelAreaWidth: 240,        // Fixed label area width
             
-            // Text sizing
-            titleSize: 16,
-            labelSize: 10,
-            scoreSize: 12,
-            lineHeight: 11,
+            chartAreaX: 270,            // Chart bars start X (labelAreaX + labelAreaWidth + gap)
+            chartAreaY: 60,             // Chart area start Y
+            chartAreaWidth: 80,         // Fixed chart area width
             
-            // Spacing
-            headerSpacing: 25,      // Space between title and first item
-            scoreHeaderSpacing: 15  // Space for score numbers above chart
+            // Grid - FIXED DIMENSIONS
+            columnWidth: 20,            // Fixed column width in pixels
+            rowHeight: 25,              // Fixed row height in pixels
+            
+            // Score numbers position
+            scoreNumbersY: 75,          // Y position for score numbers (1,2,3,4)
+            barsStartY: 90,             // Y position where bars start
+            
+            // Typography - FIXED SIZES
+            titleFontSize: 16,
+            labelFontSize: 10,
+            scoreFontSize: 12,
+            lineHeight: 12,
+            
+            // Colors
+            colors: {
+                brick1: '#cee7da',
+                brick2: '#6cc6cd', 
+                brick3: '#166e99',
+                brick4: '#182d57',
+                text: '#595959',
+                title: '#076c97',
+                grid: '#D0D0D0',
+                numbers: '#9cc2e4'
+            },
+            
+            // Apply user overrides
+            ...userConfig
         };
-        
-        // Color scheme
-        this.colors = {
-            brick1: '#cee7da',
-            brick2: '#6cc6cd', 
-            brick3: '#166e99',
-            brick4: '#182d57',
-            text: '#595959',
-            title: '#076c97',
-            grid: '#D0D0D0',
-            numbers: '#9cc2e4'
-        };
-        
-        // Apply user configuration overrides
-        if (userConfig.dimensions) {
-            Object.assign(this.ABSOLUTE_DIMENSIONS, userConfig.dimensions);
-        }
-        if (userConfig.colors) {
-            Object.assign(this.colors, userConfig.colors);
-        }
-        
-        // Set canvas to absolute dimensions
-        this.setAbsoluteDimensions();
+
+        // Set canvas to exact fixed dimensions
+        this.setFixedCanvasSize();
     }
 
-    initCanvas() {
-        const rect = this.canvas.getBoundingClientRect();
+    setFixedCanvasSize() {
         const dpr = window.devicePixelRatio || 1;
         
-        // We'll override this with absolute dimensions
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
+        // Set exact canvas dimensions
+        this.canvas.width = this.config.canvasWidth * dpr;
+        this.canvas.height = this.config.canvasHeight * dpr;
         
-        this.canvas.style.width = rect.width + 'px';
-        this.canvas.style.height = rect.height + 'px';
-    }
-    
-    setAbsoluteDimensions() {
-        const dims = this.ABSOLUTE_DIMENSIONS;
-        const dpr = window.devicePixelRatio || 1;
-        
-        // Set canvas to absolute dimensions
-        this.canvas.width = dims.canvasWidth * dpr;
-        this.canvas.height = dims.canvasHeight * dpr;
-        
-        // Reset context scaling
+        // Reset any existing transforms
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(dpr, dpr);
         
-        // Set CSS dimensions
-        this.canvas.style.width = dims.canvasWidth + 'px';
-        this.canvas.style.height = dims.canvasHeight + 'px';
+        // Set exact CSS size
+        this.canvas.style.width = this.config.canvasWidth + 'px';
+        this.canvas.style.height = this.config.canvasHeight + 'px';
     }
 
-    /**
-     * Update specific dimension parameters while maintaining absolute positioning
-     */
-    updateDimensions(newDimensions) {
-        Object.assign(this.ABSOLUTE_DIMENSIONS, newDimensions);
-        this.setAbsoluteDimensions();
+    // Calculate height needed for specific number of items
+    calculateHeightForItems(itemCount) {
+        return this.config.barsStartY + (itemCount * this.config.rowHeight) + 30;
     }
 
-    /**
-     * Calculate the optimal canvas height for a given number of items
-     */
-    static calculateOptimalHeight(itemCount) {
-        const baseHeight = 50 + 25 + 15 + 20; // padding + header + score spacing + bottom
-        const itemsHeight = itemCount * 22; // rowHeight
-        return Math.max(200, baseHeight + itemsHeight);
+    // Update parameters and re-size canvas
+    updateConfig(newConfig) {
+        Object.assign(this.config, newConfig);
+        this.setFixedCanvasSize();
     }
 
     render(data) {
         if (!data || !data.items || data.items.length === 0) return;
         
-        const dims = this.ABSOLUTE_DIMENSIONS;
+        // Auto-adjust canvas height for this chart's item count
+        const requiredHeight = this.calculateHeightForItems(data.items.length);
+        if (this.config.canvasHeight !== requiredHeight) {
+            this.config.canvasHeight = requiredHeight;
+            this.setFixedCanvasSize();
+        }
         
         // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Calculate positions based on absolute dimensions
-        this.labelAreaX = dims.paddingLeft;
-        this.labelAreaWidth = dims.labelWidth;
-        this.chartAreaX = dims.paddingLeft + dims.labelWidth;
-        this.chartAreaWidth = dims.chartWidth;
-        
-        // Render components
-        this.drawTitle(data.title);
-        this.drawGrid(data.items.length);
-        this.drawScoreNumbers();
-        this.drawItems(data.items);
+        // Render in fixed order, all top-anchored
+        this.renderTitle(data.title);
+        this.renderGrid(data.items.length);
+        this.renderScoreNumbers();
+        this.renderItems(data.items);
     }
 
-    drawTitle(title) {
+    renderTitle(title) {
         if (!title) return;
         
-        const dims = this.ABSOLUTE_DIMENSIONS;
-        const { ctx } = this;
-        
+        const { ctx, config } = this;
         ctx.save();
-        ctx.font = `500 ${dims.titleSize}px Montserrat, sans-serif`;
-        ctx.fillStyle = this.colors.title;
+        
+        // Fixed font - never changes with parameters
+        ctx.font = `500 ${config.titleFontSize}px Montserrat, sans-serif`;
+        ctx.fillStyle = config.colors.title;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         
-        ctx.fillText(title, dims.paddingLeft, dims.paddingTop);
+        // Fixed position - anchored to top-left
+        ctx.fillText(title, config.titleX, config.titleY);
+        
         ctx.restore();
     }
 
-    drawGrid(itemCount) {
-        const dims = this.ABSOLUTE_DIMENSIONS;
-        const { ctx } = this;
+    renderGrid(itemCount) {
+        const { ctx, config } = this;
         
         ctx.save();
-        ctx.strokeStyle = this.colors.grid;
+        ctx.strokeStyle = config.colors.grid;
         ctx.lineWidth = 1;
         
-        const gridStartX = this.chartAreaX;
-        const gridStartY = dims.paddingTop + dims.headerSpacing + dims.scoreHeaderSpacing;
-        const gridHeight = itemCount * dims.rowHeight;
+        // Fixed grid dimensions
+        const gridHeight = itemCount * config.rowHeight;
         
-        // Draw vertical grid lines (for each score column + one extra)
+        // Draw exactly 5 vertical lines (for 4 score columns)
         for (let i = 0; i <= 4; i++) {
-            const x = gridStartX + (i * dims.columnWidth);
+            const x = config.chartAreaX + (i * config.columnWidth);
+            
             ctx.beginPath();
-            ctx.moveTo(x, gridStartY);
-            ctx.lineTo(x, gridStartY + gridHeight);
+            ctx.moveTo(x, config.barsStartY);
+            ctx.lineTo(x, config.barsStartY + gridHeight);
             ctx.stroke();
         }
         
         ctx.restore();
     }
 
-    drawScoreNumbers() {
-        const dims = this.ABSOLUTE_DIMENSIONS;
-        const { ctx } = this;
+    renderScoreNumbers() {
+        const { ctx, config } = this;
         
         ctx.save();
-        ctx.font = `bold ${dims.scoreSize}px Montserrat, sans-serif`;
+        
+        // Fixed font
+        ctx.font = `bold ${config.scoreFontSize}px Montserrat, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = this.colors.numbers;
+        ctx.fillStyle = config.colors.numbers;
         
-        const numberY = dims.paddingTop + dims.headerSpacing + (dims.scoreHeaderSpacing / 2);
-        
+        // Draw numbers 1-4 at fixed positions
         for (let i = 1; i <= 4; i++) {
-            const x = this.chartAreaX + ((i - 1) * dims.columnWidth) + (dims.columnWidth / 2);
-            ctx.fillText(i.toString(), x, numberY);
+            const x = config.chartAreaX + ((i - 1) * config.columnWidth) + (config.columnWidth / 2);
+            ctx.fillText(i.toString(), x, config.scoreNumbersY);
         }
         
         ctx.restore();
     }
 
-    drawItems(items) {
-        const dims = this.ABSOLUTE_DIMENSIONS;
-        const startY = dims.paddingTop + dims.headerSpacing + dims.scoreHeaderSpacing;
-        
+    renderItems(items) {
         items.forEach((item, index) => {
-            const y = startY + (index * dims.rowHeight);
-            this.drawItemLabel(item.label, y);
-            this.drawItemScore(item.score, y);
+            // Fixed Y position for this item - top-anchored
+            const itemY = this.config.barsStartY + (index * this.config.rowHeight);
+            
+            this.renderItemLabel(item.label, itemY);
+            this.renderItemBars(item.score, itemY);
         });
     }
 
-    drawItemLabel(text, y) {
-        const dims = this.ABSOLUTE_DIMENSIONS;
-        const { ctx } = this;
+    renderItemLabel(text, itemY) {
+        const { ctx, config } = this;
         
         ctx.save();
-        ctx.font = `400 ${dims.labelSize}px Montserrat, sans-serif`;
-        ctx.fillStyle = this.colors.text;
+        
+        // Fixed font - never changes
+        ctx.font = `400 ${config.labelFontSize}px Montserrat, sans-serif`;
+        ctx.fillStyle = config.colors.text;
         ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
+        ctx.textBaseline = 'top';
         
-        // Use fixed label width for text wrapping
-        const lines = this.wrapText(text, this.labelAreaWidth - 10); // 10px right margin
-        const totalHeight = lines.length * dims.lineHeight;
-        const startLineY = y + (dims.rowHeight / 2) - (totalHeight / 2) + (dims.lineHeight / 2);
+        // Wrap text to fixed width
+        const lines = this.wrapTextToFixedWidth(text, config.labelAreaWidth - 10);
         
+        // Calculate starting Y for vertical centering within row
+        const totalTextHeight = lines.length * config.lineHeight;
+        const textStartY = itemY + ((config.rowHeight - totalTextHeight) / 2);
+        
+        // Draw each line at fixed positions - top-anchored
         lines.forEach((line, lineIndex) => {
-            const lineY = startLineY + (lineIndex * dims.lineHeight);
-            ctx.fillText(line, this.labelAreaX + 5, lineY);
+            const lineY = textStartY + (lineIndex * config.lineHeight);
+            ctx.fillText(line, config.labelAreaX, lineY);
         });
         
         ctx.restore();
     }
 
-    drawItemScore(score, y) {
-        const dims = this.ABSOLUTE_DIMENSIONS;
-        const { ctx } = this;
+    renderItemBars(score, itemY) {
+        const { ctx, config } = this;
         
-        // Draw score bars
+        // Fixed bar dimensions
+        const barHeight = Math.floor(config.rowHeight * 0.6);
+        const barY = itemY + ((config.rowHeight - barHeight) / 2);
+        
+        // Draw score bars at fixed positions
         for (let segment = 1; segment <= score; segment++) {
-            const x = this.chartAreaX + ((segment - 1) * dims.columnWidth);
-            const barHeight = Math.floor(dims.rowHeight * 0.6); // 60% of row height
-            const barY = y + ((dims.rowHeight - barHeight) / 2);
+            const barX = config.chartAreaX + ((segment - 1) * config.columnWidth);
             
-            ctx.fillStyle = this.colors[`brick${segment}`];
-            ctx.fillRect(x, barY, dims.columnWidth, barHeight);
+            ctx.fillStyle = config.colors[`brick${segment}`];
+            ctx.fillRect(barX, barY, config.columnWidth, barHeight);
         }
     }
 
-    wrapText(text, maxWidth) {
+    wrapTextToFixedWidth(text, maxWidth) {
         const { ctx } = this;
         
+        // Quick check - if text fits, return as single line
         if (ctx.measureText(text).width <= maxWidth) {
             return [text];
         }
         
+        // Split and wrap to fixed width
         const words = text.split(' ');
         const lines = [];
         let currentLine = words[0];
@@ -264,43 +245,8 @@ class AssessmentChart {
             lines.push(currentLine);
         }
         
-        // Limit to 3 lines to prevent overflow
+        // Hard limit to 3 lines to prevent overflow
         return lines.slice(0, 3);
-    }
-
-    /**
-     * Get current dimensions for external use
-     */
-    getDimensions() {
-        return { ...this.ABSOLUTE_DIMENSIONS };
-    }
-
-    /**
-     * Static method to create charts with consistent dimensions
-     */
-    static createWithStandardDimensions(canvas, overrides = {}) {
-        const standardDims = {
-            canvasWidth: 366,
-            canvasHeight: 400,
-            labelWidth: 240,
-            chartWidth: 120,
-            columnWidth: 30,
-            rowHeight: 22,
-            paddingTop: 50,
-            paddingLeft: 10,
-            paddingRight: 6,
-            paddingBottom: 20,
-            titleSize: 16,
-            labelSize: 10,
-            scoreSize: 12,
-            lineHeight: 11,
-            headerSpacing: 25,
-            scoreHeaderSpacing: 15
-        };
-        
-        return new AssessmentChart(canvas, {
-            dimensions: { ...standardDims, ...overrides }
-        });
     }
 }
 
