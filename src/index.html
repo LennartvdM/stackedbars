@@ -151,10 +151,14 @@
             width: 100% !important;
             height: 100% !important;
             display: block;
-            border: 2px solid red;
             background: white;
             margin: 0;
             padding: 0;
+        }
+
+        /* Debug borders for canvas elements */
+        .show-guides .chart-section canvas {
+            border: 2px solid red;
         }
 
         .page-break {
@@ -317,14 +321,14 @@
                     <!-- Left Column - FULL HEIGHT -->
                     <div class="column">
                         <div class="chart-section full-height">
-                            <canvas id="leadership-chart" width="366"></canvas>
+                            <canvas id="leadership-chart" width="366" height="500"></canvas>
                         </div>
                     </div>
                     
                     <!-- Right Column - FULL HEIGHT -->
                     <div class="column">
                         <div class="chart-section full-height">
-                            <canvas id="hr-chart" width="366"></canvas>
+                            <canvas id="hr-chart" width="366" height="500"></canvas>
                         </div>
                     </div>
                 </div>
@@ -339,20 +343,20 @@
                     <!-- Left Column - Two charts stacked -->
                     <div class="column">
                         <div class="chart-section half-height">
-                            <canvas id="strategy-chart" width="366"></canvas>
+                            <canvas id="strategy-chart" width="366" height="240"></canvas>
                         </div>
                         <div class="chart-section half-height">
-                            <canvas id="communication-chart" width="366"></canvas>
+                            <canvas id="communication-chart" width="366" height="240"></canvas>
                         </div>
                     </div>
                     
                     <!-- Right Column - Two charts stacked -->
                     <div class="column">
                         <div class="chart-section half-height">
-                            <canvas id="knowledge-chart" width="366"></canvas>
+                            <canvas id="knowledge-chart" width="366" height="240"></canvas>
                         </div>
                         <div class="chart-section half-height">
-                            <canvas id="climate-chart" width="366"></canvas>
+                            <canvas id="climate-chart" width="366" height="240"></canvas>
                         </div>
                     </div>
                 </div>

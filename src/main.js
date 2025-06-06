@@ -1,4 +1,4 @@
-import { AssessmentChart } from './assessment-chart.js';
+import { AssessmentChart } from './AssessmentChart.js';
 
 // Define all chart data
 const chartData = {
@@ -172,6 +172,11 @@ function updateAllCharts() {
     charts.forEach(({ id, data, type }) => {
         const canvas = document.getElementById(id);
         if (canvas && data) {
+            // Set canvas dimensions to match its display size
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
             const chart = new AssessmentChart(canvas, getChartConfig(type));
             chart.render(data);
         }
@@ -191,6 +196,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up event listeners
     const generateBtn = document.getElementById('generateBtn');
     const toggleRandomData = document.getElementById('toggleRandomData');
+    const toggleGuides = document.getElementById('toggleGuides');
+
+    // Toggle guides
+    if (toggleGuides) {
+        toggleGuides.addEventListener('change', (e) => {
+            document.body.classList.toggle('show-guides', e.target.checked);
+        });
+        // Set initial state
+        document.body.classList.toggle('show-guides', toggleGuides.checked);
+    }
 
     if (generateBtn) {
         generateBtn.addEventListener('click', () => {

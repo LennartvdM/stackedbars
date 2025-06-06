@@ -1,14 +1,19 @@
-class AssessmentChart {
+export class AssessmentChart {
     constructor(canvas, userConfig = {}) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
-        // Default configuration
+        // Configuration that respects user parameters
         this.config = {
             itemHeight: 25,
             itemGap: 5,
             colSpacing: 82,
-            padding: { top: 60, right: 40, bottom: 20, left: 380 },
+            padding: { 
+                top: 60,
+                right: 40, 
+                bottom: 20,
+                left: 380
+            },
             maxScore: 4,
             colors: {
                 brick1: '#cee7da',
@@ -30,38 +35,29 @@ class AssessmentChart {
             ...userConfig
         };
 
-        // Calculate derived values
+        // Use config values directly - no calculations that override user settings
         this.rowHeight = this.config.itemHeight + this.config.itemGap;
-        this.rectWidth = this.config.colSpacing;
-        this.rectHeight = this.config.itemHeight;
+    }
+
+    render(data) {
+        if (!data || !data.items || data.items.length === 0) return;
+        
+        this.autoSizeCanvas(data.items.length);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.drawGrid(data.items.length);
+        this.drawTitle(data.title);
+        this.drawScaleNumbers();
+        this.drawBars(data.items);
     }
 
     autoSizeCanvas(itemCount) {
         const requiredHeight = this.config.padding.top + 
                              30 +  // Space for title
-                             (itemCount * this.rowHeight) - this.config.itemGap + // Subtract last gap
+                             (itemCount * this.rowHeight) - this.config.itemGap + 
                              this.config.padding.bottom;
         this.canvas.height = requiredHeight;
         this.canvas.style.height = requiredHeight + 'px';
-    }
-
-    calculateMeasurements(itemCount) {
-        const canvasWidth = this.canvas.width / (window.devicePixelRatio || 1);
-        const leftPadding = this.config.padding.left;
-        const availableChartWidth = canvasWidth - leftPadding;
-        this.rectWidth = Math.floor(availableChartWidth / this.config.maxScore);
-        this.colSpacing = this.rectWidth;
-    }
-
-    render(data) {
-        if (!data || !data.items || data.items.length === 0) return;
-        this.autoSizeCanvas(data.items.length);
-        this.calculateMeasurements(data.items.length);
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.drawGrid(data.items.length);
-        this.drawTitle(data.title);
-        this.drawScaleNumbers();
-        this.drawBars(data.items);
     }
 
     drawTitle(title) {
@@ -71,6 +67,7 @@ class AssessmentChart {
         ctx.font = config.font.title;
         ctx.fillStyle = config.colors.title;
         ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
         ctx.fillText(title, 20, 22);
         ctx.restore();
     }
@@ -81,10 +78,11 @@ class AssessmentChart {
         ctx.strokeStyle = config.colors.grid;
         ctx.lineWidth = 1;
         const gridStartX = config.padding.left;
-        const gridStartY = config.padding.top + 30;  // Account for title
-        const gridHeight = (itemCount * this.rowHeight) - this.config.itemGap;  // Total grid height
+        const gridStartY = config.padding.top + 30;
+        const gridHeight = (itemCount * this.rowHeight) - config.itemGap;
+        
         for (let i = 0; i <= config.maxScore; i++) {
-            const x = gridStartX + (i * this.colSpacing);
+            const x = gridStartX + (i * config.colSpacing);
             ctx.beginPath();
             ctx.moveTo(x, gridStartY);
             ctx.lineTo(x, gridStartY + gridHeight);
@@ -100,8 +98,9 @@ class AssessmentChart {
         ctx.textAlign = 'center';
         ctx.fillStyle = config.colors.numbers;
         const headerY = config.padding.top + 15;
+        
         for (let i = 1; i <= config.maxScore; i++) {
-            const x = config.padding.left + ((i - 1) * this.colSpacing) + (this.colSpacing / 2);
+            const x = config.padding.left + ((i - 1) * config.colSpacing) + (config.colSpacing / 2);
             ctx.fillText(i.toString(), x, headerY);
         }
         ctx.restore();
@@ -118,10 +117,10 @@ class AssessmentChart {
     drawBrickSegments(score, y) {
         const { ctx, config } = this;
         for (let segment = 1; segment <= score; segment++) {
-            const x = config.padding.left + ((segment - 1) * this.colSpacing);
+            const x = config.padding.left + ((segment - 1) * config.colSpacing);
             const colorKey = `brick${segment}`;
             ctx.fillStyle = config.colors[colorKey];
-            ctx.fillRect(x, y, this.colSpacing, this.config.itemHeight);
+            ctx.fillRect(x, y, config.colSpacing, config.itemHeight);
         }
     }
 
@@ -130,15 +129,18 @@ class AssessmentChart {
         ctx.save();
         ctx.font = config.font.labels;
         ctx.fillStyle = config.colors.text;
-        ctx.textAlign = 'center';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        
         const maxWidth = config.labelWidth - 40;
         const lines = this.wrapText(text, maxWidth);
-        const totalHeight = lines.length * config.lineHeight;
-        const startY = y + (this.config.itemHeight / 2) - (totalHeight / 2) + config.lineHeight;
+        
+        const labelX = 20;
         lines.forEach((line, lineIndex) => {
-            const lineY = startY + (lineIndex * config.lineHeight);
-            ctx.fillText(line, config.padding.left / 2, lineY);
+            const lineY = y + (lineIndex * config.lineHeight);
+            ctx.fillText(line, labelX, lineY);
         });
+        
         ctx.restore();
     }
 
@@ -147,9 +149,11 @@ class AssessmentChart {
         if (ctx.measureText(text).width <= maxWidth) {
             return [text];
         }
+        
         const words = text.split(' ');
         const lines = [];
         let currentLine = words[0];
+        
         for (let i = 1; i < words.length; i++) {
             const word = words[i];
             const testLine = currentLine + ' ' + word;
@@ -160,11 +164,11 @@ class AssessmentChart {
                 currentLine = word;
             }
         }
+        
         if (currentLine) {
             lines.push(currentLine);
         }
+        
         return lines.slice(0, 3);
     }
-}
-
-export { AssessmentChart }; 
+} 
