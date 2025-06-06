@@ -81,73 +81,147 @@ const chartData = {
 };
 
 // Chart display configurations
-const CHART_CONFIG = {
-  fullColumn: {
-    padding: { top: 60, right: 40, bottom: 20, left: 380 }
-  },
-  halfColumn: {
-    padding: { top: 60, right: 40, bottom: 20, left: 340 }
-  }
+const defaultParams = {
+    itemHeight: 25,
+    itemGap: 5,
+    colSpacing: 82,
+    labelWidth: 340,
+    paddingTop: 60,
+    paddingLeft: 380,
+    paddingBottom: 20,
+    titleSize: 20,
+    labelSize: 11,
+    lineHeight: 13
 };
+
+// Current parameters
+let currentParams = { ...defaultParams };
+
+// Get chart configuration based on type and current parameters
+function getChartConfig(type) {
+    const baseConfig = {
+        itemHeight: currentParams.itemHeight,
+        itemGap: currentParams.itemGap,
+        colSpacing: currentParams.colSpacing,
+        padding: {
+            top: currentParams.paddingTop,
+            right: 40,
+            bottom: currentParams.paddingBottom,
+            left: currentParams.paddingLeft
+        },
+        font: {
+            title: `500 ${currentParams.titleSize}px Montserrat`,
+            labels: `400 ${currentParams.labelSize}px Montserrat`,
+            scores: 'bold 20px Montserrat'
+        },
+        lineHeight: currentParams.lineHeight,
+        labelWidth: currentParams.labelWidth
+    };
+    
+    // Adjust for half-column charts
+    if (type === 'half') {
+        baseConfig.padding.left = currentParams.labelWidth;
+    }
+    
+    return baseConfig;
+}
+
+// Set up parameter controls
+function setupParameterControls() {
+    // Add event listeners for all sliders
+    Object.keys(defaultParams).forEach(param => {
+        const slider = document.getElementById(param);
+        const valueSpan = document.getElementById(param + 'Value');
+        
+        if (slider && valueSpan) {
+            slider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                valueSpan.textContent = value;
+                currentParams[param] = value;
+                updateAllCharts();
+            });
+        }
+    });
+    
+    // Reset button
+    document.getElementById('resetParams').addEventListener('click', () => {
+        currentParams = { ...defaultParams };
+        Object.keys(defaultParams).forEach(param => {
+            const slider = document.getElementById(param);
+            const valueSpan = document.getElementById(param + 'Value');
+            if (slider && valueSpan) {
+                slider.value = defaultParams[param];
+                valueSpan.textContent = defaultParams[param];
+            }
+        });
+        updateAllCharts();
+    });
+}
+
+// Update all charts with current parameters
+function updateAllCharts() {
+    const charts = [
+        { id: 'leadership-chart', data: chartData.leadership, type: 'full' },
+        { id: 'hr-chart', data: chartData.hr, type: 'full' },
+        { id: 'strategy-chart', data: chartData.strategy, type: 'half' },
+        { id: 'communication-chart', data: chartData.communication, type: 'half' },
+        { id: 'knowledge-chart', data: chartData.knowledge, type: 'half' },
+        { id: 'climate-chart', data: chartData.climate, type: 'half' }
+    ];
+
+    charts.forEach(({ id, data, type }) => {
+        const canvas = document.getElementById(id);
+        if (canvas && data) {
+            const chart = new AssessmentChart(canvas, getChartConfig(type));
+            chart.render(data);
+        }
+    });
+}
 
 // Initialize all charts
 function initializeCharts() {
-  const charts = [
-    { id: 'leadership-chart', data: chartData.leadership, config: CHART_CONFIG.fullColumn },
-    { id: 'hr-chart', data: chartData.hr, config: CHART_CONFIG.fullColumn },
-    { id: 'strategy-chart', data: chartData.strategy, config: CHART_CONFIG.halfColumn },
-    { id: 'communication-chart', data: chartData.communication, config: CHART_CONFIG.halfColumn },
-    { id: 'knowledge-chart', data: chartData.knowledge, config: CHART_CONFIG.halfColumn },
-    { id: 'climate-chart', data: chartData.climate, config: CHART_CONFIG.halfColumn }
-  ];
-
-  charts.forEach(({ id, data, config }) => {
-    const canvas = document.getElementById(id);
-    if (canvas && data) {
-      const chart = new AssessmentChart(canvas, config);
-      chart.render(data);
-    }
-  });
+    updateAllCharts();
 }
 
 // Handle DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  initializeCharts();
+    setupParameterControls();
+    initializeCharts();
 
-  // Set up event listeners
-  const generateBtn = document.getElementById('generateBtn');
-  const toggleRandomData = document.getElementById('toggleRandomData');
+    // Set up event listeners
+    const generateBtn = document.getElementById('generateBtn');
+    const toggleRandomData = document.getElementById('toggleRandomData');
 
-  if (generateBtn) {
-    generateBtn.addEventListener('click', () => {
-      // Generate new random data and re-render charts
-      Object.keys(chartData).forEach(key => {
-        chartData[key].items.forEach(item => {
-          item.score = Math.floor(Math.random() * 4) + 1;
+    if (generateBtn) {
+        generateBtn.addEventListener('click', () => {
+            // Generate new random data and re-render charts
+            Object.keys(chartData).forEach(key => {
+                chartData[key].items.forEach(item => {
+                    item.score = Math.floor(Math.random() * 4) + 1;
+                });
+            });
+            initializeCharts();
         });
-      });
-      initializeCharts();
-    });
-  }
+    }
 
-  if (toggleRandomData) {
-    toggleRandomData.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        // Generate random data when toggle is checked
-        Object.keys(chartData).forEach(key => {
-          chartData[key].items.forEach(item => {
-            item.score = Math.floor(Math.random() * 4) + 1;
-          });
+    if (toggleRandomData) {
+        toggleRandomData.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                // Generate random data when toggle is checked
+                Object.keys(chartData).forEach(key => {
+                    chartData[key].items.forEach(item => {
+                        item.score = Math.floor(Math.random() * 4) + 1;
+                    });
+                });
+            } else {
+                // Reset to original data when toggle is unchecked
+                Object.keys(chartData).forEach(key => {
+                    chartData[key].items.forEach((item, index) => {
+                        item.score = chartData[key].items[index].score;
+                    });
+                });
+            }
+            initializeCharts();
         });
-      } else {
-        // Reset to original data when toggle is unchecked
-        Object.keys(chartData).forEach(key => {
-          chartData[key].items.forEach((item, index) => {
-            item.score = chartData[key].items[index].score;
-          });
-        });
-      }
-      initializeCharts();
-    });
-  }
+    }
 }); 

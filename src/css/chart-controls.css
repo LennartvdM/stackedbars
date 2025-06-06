@@ -1,0 +1,375 @@
+/* Enhanced CSS for Absolute Chart System */
+
+/* Control Panel Enhancements */
+.control-panel {
+    flex: 0.3;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.control-panel h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    border-bottom: 2px solid #1976D2;
+    padding-bottom: 8px;
+}
+
+.control-group {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #1976D2;
+}
+
+.control-group h4 {
+    margin: 0 0 12px 0;
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.control-panel label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #666;
+}
+
+.control-panel label > span:first-child {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #333;
+}
+
+.control-panel input[type="range"] {
+    margin: 4px 0;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #ddd;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.control-panel input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #1976D2;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.control-panel input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #1976D2;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.control-panel label > span:last-child {
+    align-self: flex-end;
+    margin-top: 4px;
+    min-width: 50px;
+    text-align: right;
+    font-weight: 600;
+    color: #1976D2;
+    font-size: 11px;
+    background: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Button Styles */
+.preset-btn, .action-btn {
+    width: 100%;
+    margin: 4px 0;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.preset-btn {
+    background-color: #1976D2;
+    color: white;
+}
+
+.preset-btn:hover {
+    background-color: #1565C0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.action-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.action-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#resetToDefaults {
+    background-color: #FF5722;
+}
+
+#resetToDefaults:hover {
+    background-color: #E64A19;
+}
+
+/* Chart Section Adjustments for Absolute Sizing */
+.chart-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+}
+
+.chart-section.full-height {
+    height: 100%;
+}
+
+.chart-section.half-height {
+    height: calc(50% - 10px);
+}
+
+.chart-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #1976D2;
+    text-align: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+/* Canvas Container Adjustments */
+.chart-section canvas {
+    /* Remove conflicting sizing - let AssessmentChart handle dimensions */
+    display: block;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Enhanced Page Layout */
+.pdf-container {
+    flex: 0.7;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pdf-page {
+    width: 842px;
+    height: 595px;
+    border: 2px solid #333;
+    margin: 0 auto;
+    padding: 0;
+    background: white;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.page-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Guide Enhancements */
+.show-guides .pdf-page {
+    background-image:
+        /* Page margins */
+        linear-gradient(to right, transparent 40px, rgba(0,80,255,0.3) 40px, rgba(0,80,255,0.3) 41px, transparent 41px),
+        linear-gradient(to right, transparent 801px, rgba(0,80,255,0.3) 801px, rgba(0,80,255,0.3) 802px, transparent 802px),
+        linear-gradient(to bottom, transparent 50px, rgba(0,80,255,0.3) 50px, rgba(0,80,255,0.3) 51px, transparent 51px),
+        linear-gradient(to bottom, transparent 554px, rgba(0,80,255,0.3) 554px, rgba(0,80,255,0.3) 555px, transparent 555px),
+        /* Center column divider */
+        linear-gradient(to right, transparent 421px, rgba(0,80,255,0.2) 421px, rgba(0,80,255,0.2) 422px, transparent 422px),
+        /* Light reference grid */
+        linear-gradient(to right, rgba(200,200,200,0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(200,200,200,0.1) 1px, transparent 1px);
+    background-size:
+        100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+        20px 20px, 20px 20px;
+}
+
+/* Main Layout Adjustments */
+.main-layout {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Controls Header */
+.controls {
+    max-width: 1400px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+.controls button {
+    padding: 10px 20px;
+    font-size: 14px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.controls button:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Page Break Styling */
+.page-break {
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, #ff0000 20%, #ff0000 80%, transparent 100%);
+    margin: 20px auto;
+    width: 60%;
+    position: relative;
+    border-radius: 2px;
+}
+
+.page-break::after {
+    content: "PAGE BREAK";
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 2px 12px;
+    font-size: 11px;
+    color: #ff0000;
+    font-weight: 600;
+    border: 1px solid #ff0000;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .main-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .control-panel {
+        flex: none;
+        position: relative;
+        max-height: none;
+        order: 2;
+    }
+    
+    .pdf-container {
+        flex: none;
+        order: 1;
+    }
+}
+
+@media (max-width: 900px) {
+    .pdf-page {
+        transform: scale(0.8);
+        transform-origin: top center;
+    }
+    
+    .controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .control-panel {
+        font-size: 11px;
+        padding: 15px;
+    }
+}
+
+/* Debug Information */
+.debug-info {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: monospace;
+    z-index: 1000;
+    display: none;
+}
+
+.debug-info.show {
+    display: block;
+} 
