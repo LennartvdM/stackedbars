@@ -211,4 +211,6 @@ class AssessmentChart {
         
         return lines.slice(0, 3);
     }
-} 
+}
+
+export { AssessmentChart }; 
