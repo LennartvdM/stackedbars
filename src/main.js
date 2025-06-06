@@ -110,6 +110,68 @@ function getCurrentData() {
   return useRandomData ? generateRandomData() : originalSampleData;
 }
 
+const CHART_CONFIG = {
+  fullColumn: {
+    // Canvas size: 366x505
+    padding: { top: 50, right: 0, bottom: 30, left: 238 }, // 65% of 366
+    maxScore: 4,
+    colors: {
+      brick1: '#cee7da',
+      brick2: '#6cc6cd', 
+      brick3: '#166e99',
+      brick4: '#182d57',
+      text: '#595959',
+      title: '#076c97',
+      grid: '#D0D0D0',
+      numbers: '#9cc2e4'
+    },
+    font: {
+      title: '500 18px Montserrat',
+      labels: '400 11px Montserrat',
+      scores: 'bold 14px Montserrat'
+    }
+  },
+  halfColumn: {
+    // Canvas size: 366x237
+    padding: { top: 35, right: 0, bottom: 25, left: 238 }, // 65% of 366
+    maxScore: 4,
+    colors: {
+      brick1: '#cee7da',
+      brick2: '#6cc6cd', 
+      brick3: '#166e99',
+      brick4: '#182d57',
+      text: '#595959',
+      title: '#076c97',
+      grid: '#D0D0D0',
+      numbers: '#9cc2e4'
+    },
+    font: {
+      title: '500 16px Montserrat',
+      labels: '400 10px Montserrat',
+      scores: 'bold 12px Montserrat'
+    }
+  }
+};
+
+function setFixedCanvasSizes() {
+  setCanvasSize('leadership-chart', 366, 505);
+  setCanvasSize('hr-chart', 366, 505);
+  setCanvasSize('strategy-chart', 366, 237);
+  setCanvasSize('communication-chart', 366, 237);
+  setCanvasSize('knowledge-chart', 366, 237);
+  setCanvasSize('climate-chart', 366, 237);
+}
+
+function setCanvasSize(id, width, height) {
+  const canvas = document.getElementById(id);
+  if (canvas) {
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+  }
+}
+
 function drawPrintingGuides(canvas) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
@@ -190,7 +252,14 @@ function drawPrintingGuides(canvas) {
 }
 
 function renderAllCharts(showGuides = true) {
+  console.log('Starting renderAllCharts...');
   const data = getCurrentData();
+  
+  // Debug: Check if all data exists
+  console.log('Available data keys:', Object.keys(data));
+  Object.keys(data).forEach(key => {
+    console.log(`${key} has ${data[key]?.items?.length || 0} items`);
+  });
   
   const chartMap = [
     { id: 'leadership-chart', data: data.leadership, config: CHART_CONFIG.fullColumn },
@@ -202,11 +271,23 @@ function renderAllCharts(showGuides = true) {
   ];
   
   chartMap.forEach(({ id, data, config }) => {
+    console.log(`=== Attempting to render chart: ${id} ===`);
     const canvas = document.getElementById(id);
+    console.log(`Canvas element found:`, !!canvas);
+    console.log(`Canvas dimensions:`, canvas?.width, 'x', canvas?.height);
+    console.log(`Chart data:`, data);
+    
     if (canvas) {
-      const chart = new AssessmentChart(canvas, config);
-      chart.render(data);
-      if (showGuides) drawPrintingGuides(canvas);
+      try {
+        const chart = new AssessmentChart(canvas, config);
+        chart.render(data);
+        console.log(`✓ Successfully rendered ${id}`);
+        if (showGuides) drawPrintingGuides(canvas);
+      } catch (error) {
+        console.error(`✗ Error rendering ${id}:`, error);
+      }
+    } else {
+      console.error(`✗ Canvas element not found: ${id}`);
     }
   });
 }

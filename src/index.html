@@ -118,16 +118,19 @@
             flex-shrink: 0;
         }
 
-        /* Remove all borders from canvases */
-        .chart-section.full-height canvas,
-        .chart-section.half-height canvas {
+        /* Canvas sizing */
+        .chart-section.full-height canvas {
             width: 366px !important;
-            height: auto !important;
+            height: 505px !important;
             display: block;
             border: 2px solid red;
             background: white;
         }
-        .chart-section canvas {
+
+        .chart-section.half-height canvas {
+            width: 366px !important;
+            height: 237px !important;
+            display: block;
             border: 2px solid red;
             background: white;
         }
@@ -258,12 +261,12 @@
                 <!-- Right Column - Two charts stacked -->
                 <div class="column">
                     <div class="chart-section half-height">
-                        <h3>Organisatie</h3>
-                        <canvas id="organization-chart" width="366"></canvas>
+                        <h3>Kennis en vaardigheden</h3>
+                        <canvas id="knowledge-chart" width="366"></canvas>
                     </div>
                     <div class="chart-section half-height">
-                        <h3>Werving en Selectie</h3>
-                        <canvas id="recruitment-chart" width="366"></canvas>
+                        <h3>Klimaat</h3>
+                        <canvas id="climate-chart" width="366"></canvas>
                     </div>
                 </div>
             </div>

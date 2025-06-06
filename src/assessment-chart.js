@@ -3,14 +3,12 @@ class AssessmentChart {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
-        // Measurements
-        this.rectWidth = 80;
-        this.rectHeight = 25;
-        this.rowHeight = 55;
-        this.colSpacing = 82;
+        // Initialize canvas with proper sizing
+        this.initCanvas();
         
+        // Default configuration
         this.config = {
-            padding: { top: 60, right: 40, bottom: 20, left: 380 },
+            padding: { top: 50, right: 0, bottom: 30, left: Math.floor(this.canvas.width * 0.65) },
             maxScore: 4,
             colors: {
                 brick1: '#cee7da',
@@ -23,34 +21,69 @@ class AssessmentChart {
                 numbers: '#9cc2e4'
             },
             font: {
-                title: '500 20px Montserrat',
+                title: '500 18px Montserrat',
                 labels: '400 11px Montserrat',
-                scores: 'bold 20px Montserrat'
+                scores: 'bold 14px Montserrat'
             },
             ...userConfig
+        };
+    }
+
+    /**
+     * Initialize canvas with proper sizing
+     */
+    initCanvas() {
+        // Ensure canvas has proper display size
+        const rect = this.canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        
+        // Set actual canvas size
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+        
+        // Scale context for high DPI displays
+        this.ctx.scale(dpr, dpr);
+        
+        // Set CSS size
+        this.canvas.style.width = rect.width + 'px';
+        this.canvas.style.height = rect.height + 'px';
+    }
+
+    /**
+     * Calculate dynamic measurements based on canvas size and item count
+     */
+    calculateMeasurements(itemCount) {
+        const canvasWidth = this.canvas.width / (window.devicePixelRatio || 1);
+        const canvasHeight = this.canvas.height / (window.devicePixelRatio || 1);
+        
+        // Calculate dynamic measurements
+        const leftPadding = Math.floor(canvasWidth * 0.65); // 65% for labels
+        const availableChartWidth = canvasWidth - leftPadding; // Use all remaining width
+        
+        this.rectWidth = Math.floor(availableChartWidth / this.config.maxScore);
+        this.rectHeight = Math.floor((canvasHeight - this.config.padding.top - this.config.padding.bottom - 20) / itemCount * 0.4);
+        this.rowHeight = Math.floor((canvasHeight - this.config.padding.top - this.config.padding.bottom - 20) / itemCount);
+        this.colSpacing = this.rectWidth;
+        
+        // Update padding in config
+        this.config.padding = {
+            top: this.config.padding.top,
+            right: 0,
+            bottom: this.config.padding.bottom,
+            left: leftPadding
         };
     }
 
     render(data) {
         if (!data || !data.items || data.items.length === 0) return;
         
-        this.autoSizeCanvas(data.items.length);
+        this.calculateMeasurements(data.items.length);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.drawGrid(data.items.length);
         this.drawTitle(data.title);
         this.drawScaleNumbers();
         this.drawBars(data.items);
-    }
-
-    autoSizeCanvas(itemCount) {
-        const requiredHeight = this.config.padding.top + 
-                             30 + 
-                             (itemCount * this.rowHeight) + 
-                             this.config.padding.bottom;
-        
-        this.canvas.height = requiredHeight;
-        this.canvas.style.height = requiredHeight + 'px';
     }
 
     drawTitle(title) {
