@@ -39,11 +39,6 @@ function getChartConfig(type) {
         labelWidth: currentParams.labelWidth
     };
     
-    // Adjust for half-column charts
-    if (type === 'half') {
-        baseConfig.padding.left = currentParams.labelWidth;
-    }
-    
     return baseConfig;
 }
 
