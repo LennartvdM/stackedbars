@@ -55,17 +55,13 @@
             flex-direction: column;
         }
 
-        /* Subtle, accurate print guides */
         .show-guides .pdf-page {
             background-image:
-                /* Page margins - 40pt left/right, 50pt top, 40pt bottom */
                 linear-gradient(to right, transparent 40px, rgba(0,80,255,0.5) 40px, rgba(0,80,255,0.5) 41px, transparent 41px),
                 linear-gradient(to right, transparent 801px, rgba(0,80,255,0.5) 801px, rgba(0,80,255,0.5) 802px, transparent 802px),
                 linear-gradient(to bottom, transparent 50px, rgba(0,80,255,0.5) 50px, rgba(0,80,255,0.5) 51px, transparent 51px),
                 linear-gradient(to bottom, transparent 554px, rgba(0,80,255,0.5) 554px, rgba(0,80,255,0.5) 555px, transparent 555px),
-                /* Center column divider */
                 linear-gradient(to right, transparent 421px, rgba(0,80,255,0.3) 421px, rgba(0,80,255,0.3) 422px, transparent 422px),
-                /* Light reference grid */
                 linear-gradient(to right, rgba(200,200,200,0.1) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(200,200,200,0.1) 1px, transparent 1px);
             background-size:
@@ -77,18 +73,6 @@
                 20px 20px,
                 20px 20px;
         }
-
-        /* Optional: minimal fallback for debugging
-        .show-guides .pdf-page {
-            outline: 2px solid #ccc;
-        }
-        .show-guides .page-content {
-            outline: 1px dashed rgba(0,80,255,0.4);
-        }
-        .show-guides .column {
-            outline: 1px dotted rgba(0,0,255,0.3);
-        }
-        */
 
         .page-header {
             position: absolute;
@@ -120,14 +104,13 @@
             gap: 10px;
         }
 
-        /* Charts should fill their allocated space */
         .chart-section {
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 0; /* Important for flex child */
+            min-height: 0;
             padding: 0;
-            justify-content: flex-start; /* Anchor to top */
+            justify-content: flex-start;
         }
 
         .chart-section.full-height {
@@ -135,7 +118,7 @@
         }
 
         .chart-section.half-height {
-            height: calc(50% - 5px); /* Account for smaller gap */
+            height: calc(50% - 5px);
         }
 
         .chart-section h3 {
@@ -147,17 +130,15 @@
             flex-shrink: 0;
         }
 
-        /* Canvas sizing */
         .chart-section canvas {
             width: 100% !important;
-            height: auto !important; /* Let chart control its own height */
+            height: auto !important;
             display: block;
             background: white;
             margin: 0;
             padding: 0;
         }
 
-        /* Debug borders for canvas elements */
         .show-guides .chart-section canvas {
             border: 2px solid red;
         }
@@ -197,21 +178,13 @@
             background-color: #45a049;
         }
 
-        /* Page structure guides */
-        .show-page-guides .pdf-page {
-            background-image:
-                linear-gradient(to right, transparent 40px, rgba(255,0,0,0.3) 40px, rgba(255,0,0,0.3) 41px, transparent 41px),
-                linear-gradient(to right, transparent 801px, rgba(255,0,0,0.3) 801px, rgba(255,0,0,0.3) 802px, transparent 802px),
-                linear-gradient(to bottom, transparent 50px, rgba(255,0,0,0.3) 50px, rgba(255,0,0,0.3) 51px, transparent 51px),
-                linear-gradient(to bottom, transparent 554px, rgba(255,0,0,0.3) 554px, rgba(255,0,0,0.3) 555px, transparent 555px),
-                linear-gradient(to right, transparent 421px, rgba(255,0,0,0.2) 421px, rgba(255,0,0,0.2) 422px, transparent 422px);
-            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+        #autoFitText {
+            background-color: #FF6B35 !important;
+            font-weight: bold;
         }
-        .show-content-guides .chart-section {
-            outline: 1px dashed rgba(0,100,200,0.4);
-        }
-        .show-content-guides .column {
-            outline: 1px dotted rgba(100,200,0,0.3);
+
+        #autoFitText:hover {
+            background-color: #E85D2F !important;
         }
 
         .control-panel {
@@ -279,7 +252,6 @@
             background-color: #1565C0;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 1400px) {
             .control-panel {
                 font-size: 11px;
@@ -310,7 +282,7 @@
         </label>
         
         <button id="generateBtn">Generate New Random Data</button>
-        <button id="autoFitText">Auto-Fit Text</button>
+        <button id="autoFitText">🎯 Auto-Fit Text</button>
         <button id="downloadBtn">Generate PDF</button>
     </div>
 
@@ -371,7 +343,7 @@
                 <h4>Spacing</h4>
                 <label>
                     <span>Item Height:</span>
-                    <input type="range" id="itemHeight" min="10" max="40" value="25">
+                    <input type="range" id="itemHeight" min="0" max="50" value="25">
                     <span id="itemHeightValue">25px</span>
                 </label>
                 <label>
@@ -385,12 +357,12 @@
                 <h4>Dimensions</h4>
                 <label>
                     <span>Column Width:</span>
-                    <input type="range" id="colSpacing" min="40" max="100" value="82">
+                    <input type="range" id="colSpacing" min="0" max="100" value="82">
                     <span id="colSpacingValue">82px</span>
                 </label>
                 <label>
                     <span>Label Width:</span>
-                    <input type="range" id="labelWidth" min="200" max="400" value="340">
+                    <input type="range" id="labelWidth" min="0" max="400" value="340">
                     <span id="labelWidthValue">340px</span>
                 </label>
             </div>
@@ -399,17 +371,17 @@
                 <h4>Padding</h4>
                 <label>
                     <span>Top:</span>
-                    <input type="range" id="paddingTop" min="10" max="80" value="60">
+                    <input type="range" id="paddingTop" min="0" max="80" value="60">
                     <span id="paddingTopValue">60px</span>
                 </label>
                 <label>
                     <span>Left:</span>
-                    <input type="range" id="paddingLeft" min="200" max="420" value="380">
+                    <input type="range" id="paddingLeft" min="0" max="420" value="380">
                     <span id="paddingLeftValue">380px</span>
                 </label>
                 <label>
                     <span>Bottom:</span>
-                    <input type="range" id="paddingBottom" min="5" max="40" value="20">
+                    <input type="range" id="paddingBottom" min="0" max="40" value="20">
                     <span id="paddingBottomValue">20px</span>
                 </label>
             </div>
@@ -418,21 +390,22 @@
                 <h4>Typography</h4>
                 <label>
                     <span>Title Size:</span>
-                    <input type="range" id="titleSize" min="12" max="24" value="20">
+                    <input type="range" id="titleSize" min="0" max="30" value="20">
                     <span id="titleSizeValue">20px</span>
                 </label>
                 <label>
                     <span>Label Size:</span>
-                    <input type="range" id="labelSize" min="8" max="14" value="11">
+                    <input type="range" id="labelSize" min="0" max="20" value="11">
                     <span id="labelSizeValue">11px</span>
                 </label>
                 <label>
                     <span>Line Height:</span>
-                    <input type="range" id="lineHeight" min="8" max="18" value="13">
+                    <input type="range" id="lineHeight" min="0" max="25" value="13">
                     <span id="lineHeightValue">13px</span>
                 </label>
             </div>
             
+            <button id="autoFitText" style="background-color: #FF6B35; margin-bottom: 10px;">🎯 Auto-Fit Text</button>
             <button id="resetParams">Reset to Defaults</button>
         </div>
     </div>
