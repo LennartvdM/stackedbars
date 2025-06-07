@@ -15,7 +15,11 @@ let currentParams = {
     paddingBottom: 20,
     titleSize: 20,
     labelSize: 11,
-    lineHeight: 13
+    lineHeight: 13,
+    showGridLines: true,
+    gridLineWidth: 1,
+    dividerWidth: 200,
+    dividerStroke: 1
 };
 
 // Get chart configuration
@@ -36,8 +40,17 @@ function getChartConfig(type) {
             scores: 'bold 20px Montserrat'
         },
         lineHeight: currentParams.lineHeight,
-        labelWidth: currentParams.labelWidth
+        labelWidth: currentParams.labelWidth,
+        showGridLines: currentParams.showGridLines,
+        gridLineWidth: currentParams.gridLineWidth,
+        dividerWidth: currentParams.dividerWidth,
+        dividerStroke: currentParams.dividerStroke
     };
+    
+    // Adjust for half-column charts
+    if (type === 'half') {
+        baseConfig.padding.left = currentParams.labelWidth;
+    }
     
     return baseConfig;
 }
@@ -115,11 +128,16 @@ function autoFitText() {
 // Update control values in UI
 function updateControlValues() {
     Object.keys(currentParams).forEach(param => {
-        const slider = document.getElementById(param);
-        const valueSpan = document.getElementById(param + 'Value');
-        if (slider && valueSpan) {
-            slider.value = currentParams[param];
-            valueSpan.textContent = currentParams[param] + 'px';
+        if (param === 'showGridLines') {
+            const checkbox = document.getElementById(param);
+            if (checkbox) checkbox.checked = currentParams[param];
+        } else {
+            const slider = document.getElementById(param);
+            const valueSpan = document.getElementById(param + 'Value');
+            if (slider && valueSpan) {
+                slider.value = currentParams[param];
+                valueSpan.textContent = currentParams[param] + 'px';
+            }
         }
     });
 }
@@ -129,7 +147,8 @@ function setupParameterControls() {
     const paramNames = [
         'itemHeight', 'itemGap', 'colSpacing', 'labelWidth', 
         'paddingTop', 'paddingLeft', 'paddingBottom', 
-        'titleSize', 'labelSize', 'lineHeight'
+        'titleSize', 'labelSize', 'lineHeight',
+        'gridLineWidth', 'dividerWidth', 'dividerStroke'
     ];
     
     paramNames.forEach(param => {
@@ -142,13 +161,23 @@ function setupParameterControls() {
             valueSpan.textContent = currentParams[param] + 'px';
             
             slider.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
+                const value = parseFloat(e.target.value);
                 valueSpan.textContent = value + 'px';
                 currentParams[param] = value;
                 updateAllCharts();
             });
         }
     });
+    
+    // Handle checkbox for grid lines
+    const showGridCheckbox = document.getElementById('showGridLines');
+    if (showGridCheckbox) {
+        showGridCheckbox.checked = currentParams.showGridLines;
+        showGridCheckbox.addEventListener('change', (e) => {
+            currentParams.showGridLines = e.target.checked;
+            updateAllCharts();
+        });
+    }
     
     // Auto-fit button
     const autoFitBtn = document.getElementById('autoFitText');
@@ -164,7 +193,8 @@ function setupParameterControls() {
             currentParams = {
                 itemHeight: 25, itemGap: 5, colSpacing: 82, labelWidth: 340,
                 paddingTop: 60, paddingLeft: 380, paddingBottom: 20,
-                titleSize: 20, labelSize: 11, lineHeight: 13
+                titleSize: 20, labelSize: 11, lineHeight: 13,
+                showGridLines: true, gridLineWidth: 1, dividerWidth: 200, dividerStroke: 1
             };
             
             updateControlValues();
