@@ -130,14 +130,25 @@ export class AssessmentChart {
         ctx.font = config.font.labels;
         ctx.fillStyle = config.colors.text;
         ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
+        ctx.textBaseline = 'middle';
         
         const maxWidth = config.labelWidth - 40;
         const lines = this.wrapText(text, maxWidth);
         
+        const totalTextHeight = lines.length * config.lineHeight;
+        const verticalPadding = (config.itemHeight - totalTextHeight) / 2;
+        const centerY = y + (config.itemHeight / 2);
+        
+        let startY;
+        if (lines.length === 1) {
+            startY = centerY;
+        } else {
+            startY = centerY - (totalTextHeight / 2) + (config.lineHeight / 2);
+        }
+        
         const labelX = 20;
         lines.forEach((line, lineIndex) => {
-            const lineY = y + (lineIndex * config.lineHeight);
+            const lineY = startY + (lineIndex * config.lineHeight);
             ctx.fillText(line, labelX, lineY);
         });
         
