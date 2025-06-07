@@ -405,6 +405,29 @@
                 </label>
             </div>
             
+            <div class="control-group">
+                <h4>Grid Lines</h4>
+                <label>
+                    <span>Show Grid Lines:</span>
+                    <input type="checkbox" id="showGridLines" checked>
+                </label>
+                <label>
+                    <span>Vertical Line Width:</span>
+                    <input type="range" id="gridLineWidth" min="0" max="5" value="1" step="0.5">
+                    <span id="gridLineWidthValue">1px</span>
+                </label>
+                <label>
+                    <span>Horizontal Divider Width:</span>
+                    <input type="range" id="dividerWidth" min="0" max="300" value="200">
+                    <span id="dividerWidthValue">200px</span>
+                </label>
+                <label>
+                    <span>Horizontal Divider Stroke:</span>
+                    <input type="range" id="dividerStroke" min="0" max="5" value="1" step="0.5">
+                    <span id="dividerStrokeValue">1px</span>
+                </label>
+            </div>
+            
             <button id="autoFitText" style="background-color: #FF6B35; margin-bottom: 10px;">🎯 Auto-Fit Text</button>
             <button id="resetParams">Reset to Defaults</button>
         </div>
