@@ -135,16 +135,14 @@ export class AssessmentChart {
         const maxWidth = config.labelWidth - 40;
         const lines = this.wrapText(text, maxWidth);
         
-        const totalTextHeight = lines.length * config.lineHeight;
-        const verticalPadding = (config.itemHeight - totalTextHeight) / 2;
-        const centerY = y + (config.itemHeight / 2);
+        // Always assume space for 3 lines
+        const maxLines = 3;
+        const totalAvailableHeight = maxLines * config.lineHeight;
+        const actualTextHeight = lines.length * config.lineHeight;
         
-        let startY;
-        if (lines.length === 1) {
-            startY = centerY;
-        } else {
-            startY = centerY - (totalTextHeight / 2) + (config.lineHeight / 2);
-        }
+        // Center the actual text within the space for 3 lines
+        const centerY = y + (config.itemHeight / 2);
+        const startY = centerY - (actualTextHeight / 2) + (config.lineHeight / 2);
         
         const labelX = 20;
         lines.forEach((line, lineIndex) => {
