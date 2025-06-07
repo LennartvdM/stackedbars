@@ -28,14 +28,16 @@ export class AssessmentChart {
             font: {
                 title: '500 20px Montserrat',
                 labels: '400 11px Montserrat',
-                scores: 'bold 20px Montserrat'
+                scores: '600 20px Montserrat'
             },
             lineHeight: 13,
             labelWidth: 340,
             showGridLines: true,
             gridLineWidth: 1,
+            gridLineProtrusion: 0,
             dividerWidth: 200,
             dividerStroke: 1,
+            scoreSize: 20,
             ...userConfig
         };
 
@@ -88,18 +90,19 @@ export class AssessmentChart {
         const gridStartY = config.padding.top + 30;
         const gridHeight = (itemCount * this.rowHeight) - config.itemGap;
         
-        // Draw vertical grid lines
+        // Draw vertical grid lines with protrusion
         for (let i = 0; i <= config.maxScore; i++) {
             const x = gridStartX + (i * config.colSpacing);
             ctx.beginPath();
-            ctx.moveTo(x, gridStartY);
-            ctx.lineTo(x, gridStartY + gridHeight);
+            ctx.moveTo(x, gridStartY - config.gridLineProtrusion);  // Extend upward
+            ctx.lineTo(x, gridStartY + gridHeight + config.gridLineProtrusion);  // Extend downward
             ctx.stroke();
         }
         
         // Draw horizontal dividers between items
         ctx.lineWidth = config.dividerStroke;
-        const dividerStartX = (config.padding.left / 2) - (config.dividerWidth / 2);
+        const labelCenterX = config.padding.left / 2;
+        const dividerStartX = labelCenterX - (config.dividerWidth / 2);
         
         for (let i = 1; i < itemCount; i++) {
             const y = gridStartY + (i * this.rowHeight) - (config.itemGap / 2);
@@ -115,7 +118,7 @@ export class AssessmentChart {
     drawScaleNumbers() {
         const { ctx, config } = this;
         ctx.save();
-        ctx.font = config.font.scores;
+        ctx.font = `600 ${config.scoreSize}px Montserrat`;
         ctx.textAlign = 'center';
         ctx.fillStyle = config.colors.numbers;
         const headerY = config.padding.top + 15;
@@ -150,7 +153,7 @@ export class AssessmentChart {
         ctx.save();
         ctx.font = config.font.labels;
         ctx.fillStyle = config.colors.text;
-        ctx.textAlign = 'center';
+        ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         
         const maxWidth = config.labelWidth - 40;
@@ -165,7 +168,7 @@ export class AssessmentChart {
         const centerY = y + (config.itemHeight / 2);
         const startY = centerY - (actualTextHeight / 2) + (config.lineHeight / 2);
         
-        const labelX = (config.padding.left / 2);
+        const labelX = 20;
         lines.forEach((line, lineIndex) => {
             const lineY = startY + (lineIndex * config.lineHeight);
             ctx.fillText(line, labelX, lineY);
