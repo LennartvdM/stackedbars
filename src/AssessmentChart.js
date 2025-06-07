@@ -150,7 +150,7 @@ export class AssessmentChart {
         ctx.save();
         ctx.font = config.font.labels;
         ctx.fillStyle = config.colors.text;
-        ctx.textAlign = 'left';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         const maxWidth = config.labelWidth - 40;
@@ -165,7 +165,7 @@ export class AssessmentChart {
         const centerY = y + (config.itemHeight / 2);
         const startY = centerY - (actualTextHeight / 2) + (config.lineHeight / 2);
         
-        const labelX = 20;
+        const labelX = (config.padding.left / 2);
         lines.forEach((line, lineIndex) => {
             const lineY = startY + (lineIndex * config.lineHeight);
             ctx.fillText(line, labelX, lineY);
