@@ -32,6 +32,10 @@ export class AssessmentChart {
             },
             lineHeight: 13,
             labelWidth: 340,
+            showGridLines: true,
+            gridLineWidth: 1,
+            dividerWidth: 200,
+            dividerStroke: 1,
             ...userConfig
         };
 
@@ -74,13 +78,17 @@ export class AssessmentChart {
 
     drawGrid(itemCount) {
         const { ctx, config } = this;
+        
+        if (!config.showGridLines) return;
+        
         ctx.save();
         ctx.strokeStyle = config.colors.grid;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = config.gridLineWidth;
         const gridStartX = config.padding.left;
         const gridStartY = config.padding.top + 30;
         const gridHeight = (itemCount * this.rowHeight) - config.itemGap;
         
+        // Draw vertical grid lines
         for (let i = 0; i <= config.maxScore; i++) {
             const x = gridStartX + (i * config.colSpacing);
             ctx.beginPath();
@@ -88,6 +96,19 @@ export class AssessmentChart {
             ctx.lineTo(x, gridStartY + gridHeight);
             ctx.stroke();
         }
+        
+        // Draw horizontal dividers between items
+        ctx.lineWidth = config.dividerStroke;
+        const dividerStartX = (config.padding.left / 2) - (config.dividerWidth / 2);
+        
+        for (let i = 1; i < itemCount; i++) {
+            const y = gridStartY + (i * this.rowHeight) - (config.itemGap / 2);
+            ctx.beginPath();
+            ctx.moveTo(dividerStartX, y);
+            ctx.lineTo(dividerStartX + config.dividerWidth, y);
+            ctx.stroke();
+        }
+        
         ctx.restore();
     }
 
