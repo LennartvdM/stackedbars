@@ -22,9 +22,9 @@ let currentParams = {
     dividerStroke: 1
 };
 
-// Get chart configuration
-function getChartConfig(type) {
-    const baseConfig = {
+// Get chart configuration - SAME CONFIG FOR ALL CHARTS
+function getChartConfig() {
+    return {
         itemHeight: currentParams.itemHeight,
         itemGap: currentParams.itemGap,
         colSpacing: currentParams.colSpacing,
@@ -46,13 +46,6 @@ function getChartConfig(type) {
         dividerWidth: currentParams.dividerWidth,
         dividerStroke: currentParams.dividerStroke
     };
-    
-    // Adjust for half-column charts
-    if (type === 'half') {
-        baseConfig.padding.left = currentParams.labelWidth;
-    }
-    
-    return baseConfig;
 }
 
 // Auto-fit text function
@@ -203,21 +196,23 @@ function setupParameterControls() {
     }
 }
 
-// Update all charts with current parameters
+// Update all charts with current parameters - ALL CHARTS GET SAME CONFIG
 function updateAllCharts() {
     const charts = [
-        { id: 'leadership-chart', data: resolvedChartData.leadership, type: 'full' },
-        { id: 'hr-chart', data: resolvedChartData.hr, type: 'full' },
-        { id: 'strategy-chart', data: resolvedChartData.strategy, type: 'half' },
-        { id: 'communication-chart', data: resolvedChartData.communication, type: 'half' },
-        { id: 'knowledge-chart', data: resolvedChartData.knowledge, type: 'half' },
-        { id: 'climate-chart', data: resolvedChartData.climate, type: 'half' }
+        { id: 'leadership-chart', data: resolvedChartData.leadership },
+        { id: 'hr-chart', data: resolvedChartData.hr },
+        { id: 'strategy-chart', data: resolvedChartData.strategy },
+        { id: 'communication-chart', data: resolvedChartData.communication },
+        { id: 'knowledge-chart', data: resolvedChartData.knowledge },
+        { id: 'climate-chart', data: resolvedChartData.climate }
     ];
 
-    charts.forEach(({ id, data, type }) => {
+    const config = getChartConfig(); // Single config for all charts
+
+    charts.forEach(({ id, data }) => {
         const canvas = document.getElementById(id);
         if (canvas && data) {
-            const chart = new AssessmentChart(canvas, getChartConfig(type));
+            const chart = new AssessmentChart(canvas, config);
             chart.render(data);
         }
     });
