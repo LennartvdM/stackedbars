@@ -55,6 +55,99 @@
             flex-direction: column;
         }
 
+        .page-number {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 400;
+            color: #999999;
+            border: 1px solid #e0e0e0;
+            padding: 2px 15px;
+            background: white;
+            z-index: 10;
+        }
+
+        .page-title {
+            position: absolute;
+            top: 25px;
+            left: 40px;
+            font-family: 'Montserrat', sans-serif;
+            z-index: 5;
+            text-align: left;
+        }
+
+        .page-title h1 {
+            font-size: 36px;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            color: #002060;
+            margin: 0 0 2px 0;
+            text-align: left;
+        }
+
+        .page-title h2 {
+            font-size: 16px;
+            font-weight: 400;
+            color: #999999;
+            margin: 0;
+            text-align: left;
+        }
+
+        .chart-divider-vertical {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            background-color: #d0d0d0;
+            top: 160px;
+            bottom: 60px;
+        }
+
+        .chart-divider-horizontal {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background-color: #d0d0d0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .colophon {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            background: #f8f8f8;
+            padding: 15px 20px;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: #666;
+            line-height: 1.4;
+            width: 260px;
+            text-align: left;
+        }
+
+        .colophon h4 {
+            margin: 0 0 8px 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .colophon p {
+            margin: 0 0 6px 0;
+        }
+
+        .colophon-divider {
+            height: 1px;
+            background: #ddd;
+            margin: 10px 0;
+        }
+
         .show-guides .pdf-page {
             background-image:
                 linear-gradient(to right, transparent 40px, rgba(0,80,255,0.5) 40px, rgba(0,80,255,0.5) 41px, transparent 41px),
@@ -87,13 +180,14 @@
 
         .page-content {
             position: absolute;
-            top: 0;
+            top: 160px;
             left: 0;
             right: 0;
             bottom: 0;
             display: flex;
             gap: 20px;
             padding: 20px;
+            padding-top: 0;
             box-sizing: border-box;
         }
 
@@ -290,6 +384,16 @@
         <div class="pdf-container">
             <!-- Page 1 -->
             <div class="pdf-page">
+                <div class="page-number">8</div>
+                
+                <div class="page-title">
+                    <h1>Bijlage</h1>
+                    <h2>Samenstelling van het profiel van uw bedrijf</h2>
+                </div>
+                
+                <!-- Vertical divider -->
+                <div class="chart-divider-vertical"></div>
+                
                 <div class="page-content">
                     <!-- Left Column - FULL HEIGHT -->
                     <div class="column">
@@ -312,6 +416,19 @@
             
             <!-- Page 2 -->
             <div class="pdf-page">
+                <div class="page-number">9</div>
+                
+                <div class="page-title">
+                    <h1>Bijlage</h1>
+                    <h2>Samenstelling van het profiel van uw bedrijf</h2>
+                </div>
+                
+                <!-- Vertical divider -->
+                <div class="chart-divider-vertical"></div>
+                
+                <!-- Horizontal divider -->
+                <div class="chart-divider-horizontal"></div>
+                
                 <div class="page-content">
                     <!-- Left Column - Two charts stacked -->
                     <div class="column">
@@ -332,6 +449,19 @@
                             <canvas id="climate-chart" width="366" height="240"></canvas>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Colophon -->
+                <div class="colophon">
+                    <h4>Colofon:</h4>
+                    <p>Deze factsheet is opgesteld in opdracht van en in samenwerking met Talent naar de Top.</p>
+                    <div class="colophon-divider"></div>
+                    <h4>Contact- en adresgegevens:</h4>
+                    <p>Talent naar de Top<br>
+                    Postbus 8806<br>
+                    1006 JA Amsterdam<br>
+                    Website: www.talentnaardetop.nl<br>
+                    E-mail: info@commissiemonitoring.nl</p>
                 </div>
             </div>
         </div>
